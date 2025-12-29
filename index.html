@@ -4,7 +4,9 @@
 <meta charset="UTF-8">
 <title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="/manifest.json">
 <style>
+/* ==== CSS seperti versi terakhirmu ==== */
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
 body.dark{background:#121212;color:#eee;}
@@ -176,10 +178,7 @@ function showPushNotification(title,body){if(Notification.permission==="granted"
 function checkNewVN(newPosts){
   const newLinks=newPosts.map(p=>p.link.find(l=>l.rel==="alternate").href);
   const diff=newLinks.filter(l=>!lastVNLinks.includes(l));
-  if(diff.length>0){
-    showToast(`${diff.length} VN Baru Tersedia!`);
-    showPushNotification("Angkringan VN",`${diff.length} VN Baru Tersedia!`);
-  }
+  if(diff.length>0){showToast(`${diff.length} VN Baru Tersedia!`);showPushNotification("Angkringan VN",`${diff.length} VN Baru Tersedia!`);}
   lastVNLinks=newLinks;
   localStorage.setItem("vnLinks",JSON.stringify(lastVNLinks));
 }
@@ -211,57 +210,32 @@ function showSuggestions(inputEl,listEl){
   });
 }
 
-// Highlight helper
-function highlight(text, keywords){
-  keywords.forEach(k=>{
-    if(!k) return;
-    const regex=new RegExp(`(${k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`,"gi");
-    text=text.replace(regex,'<span class="highlight">$1</span>');
-  });
-  return text;
-}
-
 // Search
-function doHomeSearch(){
-  const key=homeInput.value.trim();
-  showTab('search');
-  q.value=key;
-  lastKey=key;
-  searchOffset=0;
-  displayedLinks.clear();
-  results.innerHTML='';
-  loadMoreResults();
-}
+function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;lastKey=key;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();}
 
 // Infinite scroll
 function loadMoreResults(){
-  const tag=tagFilter.value.toLowerCase();
-  let count=0;
-  const keys = lastKey.trim().toLowerCase().split(/\s+/);
+  const tag=tagFilter.value.toLowerCase();let count=0;
   for(let i=searchOffset;i<posts.length;i++){
-    const p=posts[i];
-    const link=p.link.find(l=>l.rel==="alternate").href;
+    const p=posts[i]; const link=p.link.find(l=>l.rel==="alternate").href;
     if(displayedLinks.has(link)) continue;
     const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
-    const text=(title+" "+sum+" "+cats.join(" ")).toLowerCase();
-    if(keys.every(k=>text.includes(k)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
-      const highlightedTitle=highlight(title,keys);
-      const highlightedSum=highlight(sum.slice(0,100),keys);
+    const text=(title+sum+cats.join(" ")).toLowerCase();
+    if((!lastKey || text.includes(lastKey)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
       results.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
-        <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-        <div><div class="item-title">${highlightedTitle}</div><div class="preview">${highlightedSum}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
+      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+      <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
       displayedLinks.add(link);
       count++;
     }
-    if(count>=searchLimit){searchOffset=i+1;return;}
+    if(count >= searchLimit){searchOffset = i + 1; return;}
   }
-  searchOffset=posts.length;
-  empty.style.display=(count===0 && lastKey)?'block':'none';
+  searchOffset = posts.length;
+  if(count === 0 && lastKey) empty.style.display="block";
 }
-
-window.addEventListener('scroll',()=>{
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight-150){
-    if(searchOffset<posts.length) loadMoreResults();
+window.addEventListener('scroll', () => {
+  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
+    if(searchOffset < posts.length) loadMoreResults();
   }
 });
 
@@ -278,36 +252,25 @@ function renderHome(){
 }
 
 // Favorites
-function renderFav(){
-  const container=favResults;container.innerHTML="";
-  if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
-  favs.forEach(link=>{
-    const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);
-    if(p){
-      container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
-      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;
-    }
-  });
-}
-
-function getThumb(p){
-  let thumb=p.media$thumbnail?.url;
-  const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
-  if(match) thumb=match[1];
-  if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');
-  return thumb||"https://via.placeholder.com/400x250";
-}
+function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
+favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
+<div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+<div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;}});}
+function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);if(match)thumb=match[1];if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');return thumb||"https://via.placeholder.com/400x250";}
 
 // Handle back button Android
-window.addEventListener('popstate',function(e){
+window.addEventListener('popstate', function(event) {
   if(sheet.classList.contains('show')){
-    closeSheet();
-    history.pushState(null,null,location.href);
+    closeSheet(); // Tutup sheet dulu
+    history.pushState(null, null, location.href);
   }
 });
-history.pushState(null,null,location.href);
+history.pushState(null, null, location.href);
 
+// Register service worker
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('/sw.js').then(()=>console.log('SW registered')).catch(console.error);
+}
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
