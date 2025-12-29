@@ -71,9 +71,9 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 
 <div id="page-search" class="container">
   <div id="searchBar">
-    <input id="q" placeholder="Cari judul, genre, kata kunci...">
+    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="lastKey=this.value;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();">
   </div>
-  <select id="tagFilter"><option value="">Semua Genre</option></select>
+  <select id="tagFilter" onchange="searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();"><option value="">Semua Genre</option></select>
   <div id="results" class="grid"></div>
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
@@ -120,8 +120,6 @@ let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
 let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
 let displayedLinks = new Set();
-const results = document.getElementById('results');
-const empty = document.getElementById('empty');
 
 // Splash
 setTimeout(()=>document.getElementById("splash").remove(),1500);
@@ -174,10 +172,7 @@ fetchFeed();
 
 // Push notification & toast
 if("Notification" in window && Notification.permission!=="granted") Notification.requestPermission();
-function showPushNotification(title,body){
-  if(Notification.permission==="granted") new Notification(title,{body,icon:"https://angkringanvisualnovel.blogspot.com/favicon.ico"});
-}
-
+function showPushNotification(title,body){if(Notification.permission==="granted") new Notification(title,{body,icon:"https://angkringanvisualnovel.blogspot.com/favicon.ico"});}
 function checkNewVN(newPosts){
   const newLinks=newPosts.map(p=>p.link.find(l=>l.rel==="alternate").href);
   const diff=newLinks.filter(l=>!lastVNLinks.includes(l));
@@ -198,102 +193,114 @@ function showToast(msg){
 }
 
 // Tags & suggestions
-let suggestions=[];
 function loadTags(){
   const set=new Set();
   posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
-  const tagFilter=document.getElementById('tagFilter');
   tagFilter.innerHTML='<option value="">Semua Genre</option>';
   [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
 }
+let suggestions=[];
 function buildSuggestions(){suggestions=posts.map(p=>p.title.$t);}
 function showSuggestions(inputEl,listEl){
   const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
   if(!key) return;
   suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
     const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
-    div.onclick=()=>{
-      inputEl.value=t; lastKey=t; searchOffset=0;
-      displayedLinks.clear(); results.innerHTML=''; empty.style.display="none"; loadMoreResults();
-      listEl.innerHTML="";
-    };
+    div.onclick=()=>{inputEl.value=t;lastKey=t;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();listEl.innerHTML="";};
     listEl.appendChild(div);
   });
 }
 
+// Highlight helper
+function highlight(text, keywords){
+  keywords.forEach(k=>{
+    if(!k) return;
+    const regex=new RegExp(`(${k.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")})`,"gi");
+    text=text.replace(regex,'<span class="highlight">$1</span>');
+  });
+  return text;
+}
+
 // Search
-const homeInput = document.getElementById('homeInput');
-const q = document.getElementById('q');
-homeInput.addEventListener('keypress', e=>{if(e.key==="Enter") doHomeSearch();});
-q.addEventListener('keypress', e=>{if(e.key==="Enter") doHomeSearch();});
 function doHomeSearch(){
-  const key = homeInput.value || q.value;
-  lastKey = key.toLowerCase();
-  searchOffset=0; displayedLinks.clear();
-  results.innerHTML=''; empty.style.display="none";
+  const key=homeInput.value.trim();
   showTab('search');
+  q.value=key;
+  lastKey=key;
+  searchOffset=0;
+  displayedLinks.clear();
+  results.innerHTML='';
   loadMoreResults();
 }
 
 // Infinite scroll
 function loadMoreResults(){
-  const tag = document.getElementById('tagFilter').value.toLowerCase();
+  const tag=tagFilter.value.toLowerCase();
   let count=0;
+  const keys = lastKey.trim().toLowerCase().split(/\s+/);
   for(let i=searchOffset;i<posts.length;i++){
     const p=posts[i];
     const link=p.link.find(l=>l.rel==="alternate").href;
     if(displayedLinks.has(link)) continue;
     const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
-    const text=(title+sum+cats.join(" ")).toLowerCase();
-    if((!lastKey || text.includes(lastKey)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
+    const text=(title+" "+sum+" "+cats.join(" ")).toLowerCase();
+    if(keys.every(k=>text.includes(k)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
+      const highlightedTitle=highlight(title,keys);
+      const highlightedSum=highlight(sum.slice(0,100),keys);
       results.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
         <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-        <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
-      displayedLinks.add(link); count++;
+        <div><div class="item-title">${highlightedTitle}</div><div class="preview">${highlightedSum}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
+      displayedLinks.add(link);
+      count++;
     }
-    if(count>=searchLimit){searchOffset=i+1; return;}
+    if(count>=searchLimit){searchOffset=i+1;return;}
   }
   searchOffset=posts.length;
-  if(count===0) empty.style.display="block";
+  empty.style.display=(count===0 && lastKey)?'block':'none';
 }
 
 window.addEventListener('scroll',()=>{
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
+  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight-150){
     if(searchOffset<posts.length) loadMoreResults();
   }
 });
 
 // Home render
 function renderHome(){
-  const container = document.getElementById('homeResults'); container.innerHTML="";
-  let top = posts.slice(0,10);
-  if(top.length===0){document.getElementById('emptyHome').style.display="block"; return;}else{document.getElementById('emptyHome').style.display="none";}
+  const container=homeResults;container.innerHTML="";
+  let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
   top.forEach(p=>{
-    const t=p.title.$t, s=p.summary?.$t||"", c=(p.category||[]).map(x=>x.term), l=p.link.find(l=>l.rel==="alternate").href;
-    container.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
-      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
+    const t=p.title.$t,s=p.summary?.$t||"",c=(p.category||[]).map(x=>x.term),l=p.link.find(l=>l.rel==="alternate").href;
+    container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+    <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+    <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
   });
 }
 
 // Favorites
 function renderFav(){
-  const container=document.getElementById('favResults'); container.innerHTML="";
-  if(favs.length===0){document.getElementById('emptyFav').style.display="block"; return;}else{document.getElementById('emptyFav').style.display="none";}
+  const container=favResults;container.innerHTML="";
+  if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
   favs.forEach(link=>{
     const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);
-    if(p){const t=p.title.$t, s=p.summary?.$t||"", c=(p.category||[]).map(x=>x.term);
-      container.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${link}")'>
+    if(p){
+      container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
       <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;}
+      <div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;
+    }
   });
 }
 
-// Helper
-function getThumb(p){let thumb=p.media$thumbnail?.url; const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/); if(match) thumb=match[1]; if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c'); return thumb||"https://via.placeholder.com/400x250";}
+function getThumb(p){
+  let thumb=p.media$thumbnail?.url;
+  const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
+  if(match) thumb=match[1];
+  if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');
+  return thumb||"https://via.placeholder.com/400x250";
+}
 
-// Back button Android
-window.addEventListener('popstate', function(e){
+// Handle back button Android
+window.addEventListener('popstate',function(e){
   if(sheet.classList.contains('show')){
     closeSheet();
     history.pushState(null,null,location.href);
@@ -302,7 +309,7 @@ window.addEventListener('popstate', function(e){
 history.pushState(null,null,location.href);
 
 </script>
-<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
 
+<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
 </body>
 </html>
