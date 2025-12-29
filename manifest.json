@@ -4,7 +4,7 @@
   "description": "Aplikasi search engine untuk Visual Novel berbasis feed Angkringan Visual Novel. Cari judul, genre, atau kata kunci dengan cepat dan mudah.",
   "start_url": "/index.html",
   "display": "standalone",
-  "display_override": ["fullscreen","window-controls-overlay"],
+  "display_override": ["fullscreen", "window-controls-overlay"],
   "background_color": "#ffffff",
   "theme_color": "#4285f4",
   "dir": "ltr",
@@ -20,21 +20,6 @@
     {
       "src": "/icons/icon-96x96.png",
       "sizes": "96x96",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-128x128.png",
-      "sizes": "128x128",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-152x152.png",
-      "sizes": "152x152",
       "type": "image/png"
     },
     {
