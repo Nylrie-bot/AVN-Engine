@@ -46,7 +46,6 @@ header {
   right: 14px;
   top: 14px;
   cursor: pointer;
-  font-size: 14px;
 }
 
 /* Layout */
@@ -92,14 +91,30 @@ input {
   to { transform: rotate(360deg); }
 }
 
-/* Results */
+/* Result card */
 .item {
+  display: flex;
+  gap: 12px;
   background: var(--card);
-  padding: 14px;
+  padding: 12px;
   border-radius: 14px;
   margin-bottom: 14px;
   box-shadow: 0 4px 10px rgba(0,0,0,.08);
   cursor: pointer;
+}
+
+.thumb {
+  width: 80px;
+  height: 110px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  background-size: cover;
+  background-position: center;
+  background-color: #ccc;
+}
+
+.item-body {
+  flex: 1;
 }
 
 .item-title {
@@ -134,8 +149,6 @@ mark {
 }
 
 #sheet.show { bottom: 0; }
-
-#sheet h3 { margin-top: 0; }
 
 .close {
   text-align: right;
@@ -182,28 +195,41 @@ function toggleDark() {
 
 function loadFeed(data) {
   posts = data.feed.entry || [];
-  document.getElementById("loader").style.display = "none";
+  loader.style.display = "none";
 }
 
 function highlight(text, key) {
   return text.replace(new RegExp(`(${key})`, "gi"), "<mark>$1</mark>");
 }
 
+function getThumbnail(p) {
+  if (p.media$thumbnail) {
+    return p.media$thumbnail.url.replace("s72-c", "s300");
+  }
+  const match = (p.summary?.$t || "").match(/<img.*?src="(.*?)"/);
+  if (match) return match[1];
+  return "https://via.placeholder.com/300x420?text=No+Image";
+}
+
 function searchVN() {
   const key = q.value.toLowerCase();
-  const res = results;
-  res.innerHTML = "";
-
+  results.innerHTML = "";
   if (!key || posts.length === 0) return;
 
   posts.forEach(p => {
     const title = p.title.$t;
     const summary = p.summary ? p.summary.$t : "";
     if (title.toLowerCase().includes(key) || summary.toLowerCase().includes(key)) {
-      res.innerHTML += `
-        <div class="item" onclick="openSheet('${encodeURIComponent(title)}','${encodeURIComponent(summary)}','${p.link.find(l=>l.rel==='alternate').href}')">
-          <div class="item-title">${highlight(title, key)}</div>
-          <div class="preview">${highlight(summary.slice(0,100), key)}...</div>
+      const thumb = getThumbnail(p);
+      const link = p.link.find(l => l.rel === "alternate").href;
+
+      results.innerHTML += `
+        <div class="item" onclick="openSheet('${encodeURIComponent(title)}','${encodeURIComponent(summary)}','${link}')">
+          <div class="thumb" style="background-image:url('${thumb}')"></div>
+          <div class="item-body">
+            <div class="item-title">${highlight(title, key)}</div>
+            <div class="preview">${highlight(summary.slice(0,100), key)}...</div>
+          </div>
         </div>`;
     }
   });
@@ -220,7 +246,7 @@ function closeSheet() {
   sheet.classList.remove("show");
 }
 
-document.getElementById("loader").style.display = "block";
+loader.style.display = "block";
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&max-results=150&callback=loadFeed"></script>
