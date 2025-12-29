@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>VN Search Engine</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+body {
+  font-family: sans-serif;
+  padding: 15px;
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  font-size: 16px;
+  border: 2px solid #f4a300;
+  border-radius: 8px;
+}
+
+.item {
+  margin: 12px 0;
+}
+
+a {
+  text-decoration: none;
+  font-weight: bold;
+  color: #222;
+}
+
+small {
+  color: #666;
+}
+</style>
+</head>
+
+<body>
+
+<h2>Search Angkringan Visual Novel</h2>
+
+<input
+  id="q"
+  placeholder="Cari judul atau kata kunci VN..."
+  oninput="searchVN()"
+/>
+
+<div id="results">
+  <small>Memuat data...</small>
+</div>
+
+<script>
+let posts = [];
+let feedLoaded = false;
+
+function loadFeed(data) {
+  posts = data.feed.entry || [];
+  feedLoaded = true;
+  document.getElementById("results").innerHTML =
+    "<small>Data siap. Mulai mengetik…</small>";
+}
+
+function searchVN() {
+  if (!feedLoaded) return;
