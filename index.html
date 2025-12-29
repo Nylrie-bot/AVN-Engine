@@ -2,58 +2,83 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<style>
-  <!-- Manifest PWA -->
+<title>Angkringan Visual Novel</title>
+
+<!-- Manifest PWA -->
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#4285f4">
 
 <!-- Font Icon (Material Icons) -->
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
-body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
-body.dark{background:#121212;color:#eee;}
-#splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;z-index:999;}
-.header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;position:relative;}
-.toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;user-select:none;}
-#homeSearchBar, #searchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;position:relative;}
-#homeSearchBar input, #searchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
-#homeSearchBar button, #searchBar button{padding:12px 16px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
-body.dark #homeSearchBar input,body.dark #searchBar input{background:#1f1f1f;color:#eee;border-color:#444;}
-.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;z-index:998;max-height:180px;overflow-y:auto;border-radius:8px;}
-body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;color:#eee;}
-.suggestion-item{padding:8px;cursor:pointer;border-bottom:1px solid #ddd;}
-body.dark .suggestion-item{border-color:#333;}
-.suggestion-item:hover{background:#4285f4;color:#fff;}
-.container{padding:15px;padding-bottom:80px;display:none;transition:opacity 0.3s;}
-.container.show{display:block;opacity:1;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
-.item{display:flex;flex-direction:column;gap:8px;background:#f1f3f4;padding:8px;border-radius:12px;cursor:pointer;transition:transform 0.3s,box-shadow 0.3s,opacity 0.3s;opacity:0;}
-.item.show{opacity:1;}
-body.dark .item{background:#1f1f1f;}
-.item:hover{transform:translateY(-3px);box-shadow:0 6px 12px rgba(0,0,0,.2);}
-.thumb{width:100%;height:180px;border-radius:10px;background-size:cover;background-position:center;}
-.item-title{font-weight:bold;font-size:14px;}
-.preview{font-size:12px;opacity:.8;}
-.genre{font-size:11px;opacity:.6;}
-.highlight{background:yellow;color:#000;}
-.empty{opacity:.6;text-align:center;margin-top:20px;}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:998;}
-.overlay.show{display:block;}
-.sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-radius:20px 20px 0 0;padding:10px;transition:.3s;max-height:90%;overflow:auto;z-index:999;}
-body.dark .sheet{background:#1f1f1f;color:#eee;}
-.sheet.show{bottom:0;}
-.sheet iframe{width:100%;height:70vh;border:none;border-radius:12px;}
-.fav{font-size:20px;float:right;cursor:pointer;user-select:none;margin-left:10px;}
-.floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
-.floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
-.overlay-menu{position:fixed;top:0;right:0;width:250px;height:100%;background:#fff;transform:translateX(100%);transition:transform 0.3s ease;z-index:1000;padding:20px;overflow-y:auto;}
-body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
-.overlay-menu.show{transform:translateX(0);}
-.overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#ffcc33;color:#000;padding:12px 20px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.2);opacity:0;transition:opacity 0.5s;z-index:1001;}
-.toast.show{opacity:1;}
+
+<style>
+/* --- Basic Reset & Body --- */
+* { box-sizing: border-box; margin:0; padding:0; }
+body { font-family: system-ui,sans-serif; background:#fff; color:#202124; transition: background 0.3s,color 0.3s; overflow-x:hidden; }
+body.dark { background:#121212; color:#eee; }
+
+/* --- Splash --- */
+#splash {
+  position:fixed; inset:0; background:#4285f4; color:#fff; display:flex;
+  align-items:center; justify-content:center; font-size:26px; font-weight:bold; z-index:999;
+}
+
+/* --- Header --- */
+.header { padding:14px; text-align:center; font-weight:bold; font-size:20px; display:flex; justify-content:center; align-items:center; gap:10px; position:relative; }
+.toggle-dark { cursor:pointer; font-size:18px; position:absolute; right:10px; top:14px; user-select:none; }
+
+/* --- Search Bars --- */
+#homeSearchBar, #searchBar { margin:20px auto; width:90%; max-width:500px; display:flex; gap:10px; position:relative; }
+#homeSearchBar input, #searchBar input { flex:1; padding:12px 16px; border-radius:24px; border:1px solid #ccc; font-size:16px; transition: background 0.3s,color 0.3s; }
+#homeSearchBar button, #searchBar button { padding:12px 16px; border:none; border-radius:24px; background:#4285f4; color:#fff; cursor:pointer; font-weight:bold; }
+body.dark #homeSearchBar input, body.dark #searchBar input { background:#1f1f1f; color:#eee; border-color:#444; }
+
+/* --- Suggestions --- */
+.autocomplete-list { position:absolute; top:100%; left:0; right:0; background:#fff; border:1px solid #ddd; z-index:998; max-height:180px; overflow-y:auto; border-radius:8px; }
+body.dark .autocomplete-list { background:#1f1f1f; border-color:#333; color:#eee; }
+.suggestion-item { padding:8px; cursor:pointer; border-bottom:1px solid #ddd; }
+body.dark .suggestion-item { border-color:#333; }
+.suggestion-item:hover { background:#4285f4; color:#fff; }
+
+/* --- Containers & Grid --- */
+.container { padding:15px; padding-bottom:80px; display:none; transition:opacity 0.3s; }
+.container.show { display:block; opacity:1; }
+.grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; }
+.item { display:flex; flex-direction:column; gap:8px; background:#f1f3f4; padding:8px; border-radius:12px; cursor:pointer; transition: transform 0.3s, box-shadow 0.3s, opacity 0.3s; opacity:0; }
+.item.show { opacity:1; }
+body.dark .item { background:#1f1f1f; }
+.item:hover { transform:translateY(-3px); box-shadow:0 6px 12px rgba(0,0,0,.2); }
+
+/* --- Thumbnail & Text --- */
+.thumb { width:100%; height:180px; border-radius:10px; background-size:cover; background-position:center; }
+.item-title { font-weight:bold; font-size:14px; }
+.preview { font-size:12px; opacity:.8; }
+.genre { font-size:11px; opacity:.6; }
+.empty { opacity:.6; text-align:center; margin-top:20px; }
+
+/* --- Overlay & Sheet --- */
+.overlay { position:fixed; inset:0; background:rgba(0,0,0,.4); display:none; z-index:998; }
+.overlay.show { display:block; }
+.sheet { position:fixed; left:0; right:0; bottom:-100%; background:#fff; border-radius:20px 20px 0 0; padding:10px; transition:.3s; max-height:90%; overflow:auto; z-index:999; }
+body.dark .sheet { background:#1f1f1f; color:#eee; }
+.sheet.show { bottom:0; }
+.sheet iframe { width:100%; height:70vh; border:none; border-radius:12px; }
+.fav { font-size:20px; float:right; cursor:pointer; user-select:none; margin-left:10px; }
+
+/* --- Floating Nav --- */
+.floating-nav { position:fixed; right:15px; bottom:15px; display:flex; flex-direction:column; gap:10px; z-index:999; }
+.floating-nav button { padding:12px; border:none; border-radius:50%; background:#4285f4; color:#fff; cursor:pointer; font-size:16px; box-shadow:0 2px 6px rgba(0,0,0,.2); }
+
+/* --- Overlay Menu --- */
+.overlay-menu { position:fixed; top:0; right:0; width:250px; height:100%; background:#fff; transform:translateX(100%); transition:transform 0.3s ease; z-index:1000; padding:20px; overflow-y:auto; }
+body.dark .overlay-menu { background:#1f1f1f; color:#eee; }
+.overlay-menu.show { transform:translateX(0); }
+.overlay-menu button { display:block; margin:10px 0; padding:10px; width:100%; border:none; border-radius:8px; background:#4285f4; color:#fff; cursor:pointer; font-weight:bold; }
+
+/* --- Toast --- */
+.toast { position:fixed; bottom:80px; left:50%; transform:translateX(-50%); background:#ffcc33; color:#000; padding:12px 20px; border-radius:20px; box-shadow:0 2px 6px rgba(0,0,0,.2); opacity:0; transition:opacity 0.5s; z-index:1001; }
+.toast.show { opacity:1; }
 </style>
 </head>
 <body>
@@ -84,16 +109,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
 
-<div id="page-fav" class="container">
-  <div id="favResults" class="grid"></div>
-  <div id="emptyFav" class="empty">Belum ada VN favorit</div>
-</div>
-
-<div id="page-about" class="container">
-  <h3>Tentang Aplikasi</h3>
-  <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
-</div>
-
 <div class="overlay" onclick="closeSheet()"></div>
 
 <div class="sheet" id="sheet">
@@ -107,14 +122,12 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 <div class="floating-nav">
   <button onclick="showTab('home')">🏠</button>
   <button onclick="showTab('search')">🔍</button>
-  <button onclick="showTab('fav')">❤️</button>
   <button onclick="toggleOverlayMenu()">☰</button>
 </div>
 
 <div class="overlay-menu" id="overlayMenu">
   <button onclick="showTab('home')">Home 🏠</button>
   <button onclick="showTab('search')">Search 🔍</button>
-  <button onclick="showTab('fav')">Favorites ❤️</button>
   <button onclick="showTab('about')">About ℹ️</button>
   <button onclick="toggleOverlayMenu()">Close ✖️</button>
 </div>
@@ -124,7 +137,7 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 <script>
 let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
-let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
+let lastKey="", searchOffset=0, searchLimit=20;
 let displayedLinks = new Set();
 
 // Splash
@@ -137,38 +150,42 @@ function toggleDark(){document.body.classList.toggle("dark");}
 function showTab(t){
   document.getElementById("page-home").style.display=t==="home"?"block":"none";
   document.getElementById("page-search").style.display=t==="search"?"block":"none";
-  document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
-  document.getElementById("page-about").style.display=t==="about"?"block":"none";
-  if(t==="fav") renderFav();
   closeOverlayMenu();
 }
 
 // Overlay menu
 function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
-function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
 
 // Sheet
 function openSheet(t,s,c,l){
   currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
-  sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
-  sheetFrame.src=l;updateFavIcon();
-  sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");
+  sheetTitle.innerText=t; sheetSum.innerText=s; sheetGenre.innerText=c.join(", ");
+  sheetFrame.src=l; updateFavIcon();
+  sheet.classList.add("show"); document.querySelector(".overlay").classList.add("show");
 }
-function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
+function closeSheet(){
+  sheet.classList.remove("show"); document.querySelector(".overlay").classList.remove("show");
+}
+
+// Handle Android back button to close sheet first
+window.addEventListener('popstate', function(event) {
+  if(sheet.classList.contains('show')){
+    closeSheet();
+    history.pushState(null,null,location.href);
+  }
+});
+history.pushState(null,null,location.href);
+
 function toggleFav(){
   if(favs.includes(currentLink)) favs=favs.filter(x=>x!==currentLink);
   else favs.push(currentLink);
-  localStorage.setItem("favs",JSON.stringify(favs));updateFavIcon();
+  localStorage.setItem("favs",JSON.stringify(favs));
+  updateFavIcon();
 }
 function updateFavIcon(){document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";}
 
 // Fetch feed
-function loadFeed(d){
-  const newPosts=d.feed.entry||[];
-  checkNewVN(newPosts);
-  posts=newPosts;
-  loadTags(); buildSuggestions(); renderHome();
-}
+function loadFeed(d){ posts=d.feed.entry||[]; renderHome(); }
 function fetchFeed(){
   const script=document.createElement("script");
   script.src=`https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed&_=${Date.now()}`;
@@ -176,103 +193,27 @@ function fetchFeed(){
 }
 fetchFeed();
 
-// Push notification & toast
-if("Notification" in window && Notification.permission!=="granted") Notification.requestPermission();
-function showPushNotification(title,body){if(Notification.permission==="granted") new Notification(title,{body,icon:"https://angkringanvisualnovel.blogspot.com/favicon.ico"});}
-function checkNewVN(newPosts){
-  const newLinks=newPosts.map(p=>p.link.find(l=>l.rel==="alternate").href);
-  const diff=newLinks.filter(l=>!lastVNLinks.includes(l));
-  if(diff.length>0){showToast(`${diff.length} VN Baru Tersedia!`);showPushNotification("Angkringan VN",`${diff.length} VN Baru Tersedia!`);}
-  lastVNLinks=newLinks;
-  localStorage.setItem("vnLinks",JSON.stringify(lastVNLinks));
-}
-
-// Toast
-function showToast(msg){
-  const t=document.getElementById("toast");
-  t.innerText=msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),3000);
-}
-
-// Tags & suggestions
-function loadTags(){
-  const set=new Set();
-  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
-  tagFilter.innerHTML='<option value="">Semua Genre</option>';
-  [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
-}
-let suggestions=[];
-function buildSuggestions(){suggestions=posts.map(p=>p.title.$t);}
-function showSuggestions(inputEl,listEl){
-  const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
-  if(!key) return;
-  suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
-    const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
-    div.onclick=()=>{inputEl.value=t;lastKey=t;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();listEl.innerHTML="";};
-    listEl.appendChild(div);
-  });
-}
-
-// Search
-function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;lastKey=key;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();}
-
-// Infinite scroll
-function loadMoreResults(){
-  const tag=tagFilter.value.toLowerCase();let count=0;
-  for(let i=searchOffset;i<posts.length;i++){
-    const p=posts[i]; const link=p.link.find(l=>l.rel==="alternate").href;
-    if(displayedLinks.has(link)) continue;
-    const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
-    const text=(title+sum+cats.join(" ")).toLowerCase();
-    if((!lastKey || text.includes(lastKey)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
-      results.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
-      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
-      displayedLinks.add(link);
-      count++;
-    }
-    if(count >= searchLimit){searchOffset = i + 1; return;}
-  }
-  searchOffset = posts.length;
-  if(count === 0 && lastKey) empty.style.display="block";
-}
-window.addEventListener('scroll', () => {
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
-    if(searchOffset < posts.length) loadMoreResults();
-  }
-});
-
 // Home render
 function renderHome(){
-  const container=homeResults;container.innerHTML="";
-  let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
-  top.forEach(p=>{
+  const container=homeResults; container.innerHTML="";
+  posts.slice(0,10).forEach(p=>{
     const t=p.title.$t,s=p.summary?.$t||"",c=(p.category||[]).map(x=>x.term),l=p.link.find(l=>l.rel==="alternate").href;
-    container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
-    <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-    <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
+    container.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+      <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div>
+    </div>`;
   });
 }
-
-// Favorites
-function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
-favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
-<div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-<div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;}});}
-function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);if(match)thumb=match[1];if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');return thumb||"https://via.placeholder.com/400x250";}
-
-// Handle back button Android
-window.addEventListener('popstate', function(event) {
-  if(sheet.classList.contains('show')){
-    closeSheet(); // Tutup sheet dulu
-    history.pushState(null, null, location.href);
-  }
-});
-history.pushState(null, null, location.href);
-
+function getThumb(p){
+  let thumb=p.media$thumbnail?.url;
+  const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
+  if(match) thumb=match[1];
+  if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');
+  return thumb||"https://via.placeholder.com/400x250";
+}
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
+
 </body>
 </html>
