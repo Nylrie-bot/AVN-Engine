@@ -90,10 +90,10 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 <div id="page-search" class="container">
   <div id="searchBar">
     <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="showSuggestions(this,searchSuggestions)">
-    <button onclick="searchVN()">Search</button>
+    <button onclick="searchVN(q.value)">Search</button>
     <div id="searchSuggestions" class="autocomplete-list"></div>
   </div>
-  <select id="tagFilter" onchange="searchVN()"><option value="">Semua Genre</option></select>
+  <select id="tagFilter" onchange="searchVN(q.value)"><option value="">Semua Genre</option></select>
   <div id="results" class="grid"></div>
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
@@ -131,7 +131,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 
 <!-- OVERLAY MENU -->
 <div class="overlay-menu" id="overlayMenu">
-  <button onclick="toggleDark()">Dark Mode 🌙</button>
   <button onclick="showTab('home')">Home 🏠</button>
   <button onclick="showTab('search')">Search 🔍</button>
   <button onclick="showTab('fav')">Favorites ❤️</button>
@@ -177,7 +176,7 @@ function showSuggestions(inputEl,listEl){
     suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
         const div=document.createElement("div");
         div.textContent=t;div.className="suggestion-item";
-        div.onclick=()=>{inputEl.value=t;searchVN();listEl.innerHTML="";};
+        div.onclick=()=>{inputEl.value=t;searchVN(q.value);listEl.innerHTML="";};
         listEl.appendChild(div);
     });
 }
@@ -185,8 +184,9 @@ function showSuggestions(inputEl,listEl){
 // -------------------- SEARCH --------------------
 function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;searchVN(key);}
 function searchVN(keyInput){
-    const key=keyInput||q.value.toLowerCase();
-    const tag=tagFilter.value.toLowerCase();
+    if(posts.length===0) return; // pastikan data sudah dimuat
+    const key = (keyInput || q.value).toLowerCase();
+    const tag = tagFilter.value.toLowerCase();
     results.innerHTML="";empty.style.display="none";searchOffset=0;lastKey=key;
     loadMoreResults();
 }
@@ -198,11 +198,7 @@ function loadMoreResults(){
         if((!lastKey||text.includes(lastKey))&&(!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
             results.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
             <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-            <div>
-            <div class="item-title">${title}</div>
-            <div class="preview">${sum.slice(0,90)}...</div>
-            <div class="genre">${cats.join(", ")}</div>
-            </div></div>`;
+            <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,90)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
             count++;
         }
         if(count>=searchLimit){searchOffset=i+1;return;}
