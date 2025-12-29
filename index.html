@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="manifest" href="/manifest.json">
 <style>
-/* ==== CSS seperti versi terakhirmu ==== */
+/* ==== CSS sama seperti versi terakhir ==== */
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
 body.dark{background:#121212;color:#eee;}
@@ -73,9 +73,9 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 
 <div id="page-search" class="container">
   <div id="searchBar">
-    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="lastKey=this.value;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();">
+    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="onSearchInput()">
   </div>
-  <select id="tagFilter" onchange="searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();"><option value="">Semua Genre</option></select>
+  <select id="tagFilter" onchange="onFilterChange()"><option value="">Semua Genre</option></select>
   <div id="results" class="grid"></div>
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
@@ -122,6 +122,13 @@ let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
 let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
 let displayedLinks = new Set();
+
+// DOM elements
+const homeInput = document.getElementById("homeInput");
+const q = document.getElementById("q");
+const results = document.getElementById("results");
+const empty = document.getElementById("empty");
+const tagFilter = document.getElementById("tagFilter");
 
 // Splash
 setTimeout(()=>document.getElementById("splash").remove(),1500);
@@ -210,8 +217,36 @@ function showSuggestions(inputEl,listEl){
   });
 }
 
-// Search
-function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;lastKey=key;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();}
+// Search input handler
+function onSearchInput(){
+  lastKey = q.value;
+  searchOffset = 0;
+  displayedLinks.clear();
+  results.innerHTML = '';
+  empty.style.display = 'none';
+  loadMoreResults();
+}
+
+// Filter change
+function onFilterChange(){
+  searchOffset = 0;
+  displayedLinks.clear();
+  results.innerHTML = '';
+  empty.style.display = 'none';
+  loadMoreResults();
+}
+
+// Home search
+function doHomeSearch(){
+  lastKey = homeInput.value;
+  showTab('search');
+  q.value = lastKey;
+  searchOffset = 0;
+  displayedLinks.clear();
+  results.innerHTML = '';
+  empty.style.display = 'none';
+  loadMoreResults();
+}
 
 // Infinite scroll
 function loadMoreResults(){
@@ -221,7 +256,7 @@ function loadMoreResults(){
     if(displayedLinks.has(link)) continue;
     const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
     const text=(title+sum+cats.join(" ")).toLowerCase();
-    if((!lastKey || text.includes(lastKey)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
+    if((!lastKey || text.includes(lastKey.toLowerCase())) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
       results.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
       <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
       <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
@@ -233,11 +268,6 @@ function loadMoreResults(){
   searchOffset = posts.length;
   if(count === 0 && lastKey) empty.style.display="block";
 }
-window.addEventListener('scroll', () => {
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
-    if(searchOffset < posts.length) loadMoreResults();
-  }
-});
 
 // Home render
 function renderHome(){
@@ -261,7 +291,7 @@ function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.
 // Handle back button Android
 window.addEventListener('popstate', function(event) {
   if(sheet.classList.contains('show')){
-    closeSheet(); // Tutup sheet dulu
+    closeSheet();
     history.pushState(null, null, location.href);
   }
 });
