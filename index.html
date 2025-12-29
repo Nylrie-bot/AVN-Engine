@@ -2,160 +2,130 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>VN Search Engine</title>
+<title>Angkringan VN Search</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
 :root {
-  --primary: #d8a100;
-  --bg: #f4f4f4;
-  --card: #ffffff;
-  --text: #222;
-  --muted: #666;
+  --primary:#d8a100;
+  --bg:#f4f4f4;
+  --card:#ffffff;
+  --text:#222;
+  --muted:#666;
 }
 
 body.dark {
-  --bg: #121212;
-  --card: #1e1e1e;
-  --text: #eee;
-  --muted: #aaa;
+  --bg:#121212;
+  --card:#1e1e1e;
+  --text:#eee;
+  --muted:#aaa;
 }
 
-* { box-sizing: border-box; }
+*{box-sizing:border-box}
 
-body {
-  margin: 0;
-  font-family: system-ui, sans-serif;
-  background: var(--bg);
-  color: var(--text);
+body{
+  margin:0;
+  font-family:system-ui,sans-serif;
+  background:var(--bg);
+  color:var(--text);
 }
 
-/* Header */
-header {
-  background: var(--primary);
-  color: white;
-  padding: 16px;
-  font-size: 18px;
-  font-weight: 600;
-  text-align: center;
-  position: relative;
+header{
+  background:var(--primary);
+  color:#fff;
+  padding:16px;
+  text-align:center;
+  font-weight:600;
+  position:relative;
 }
 
-.toggle {
-  position: absolute;
-  right: 14px;
-  top: 14px;
-  cursor: pointer;
+.toggle{
+  position:absolute;
+  right:14px;
+  top:14px;
+  cursor:pointer;
 }
 
-/* Layout */
-.container { padding: 16px; }
+.container{padding:16px}
 
-.search-box {
-  background: var(--card);
-  padding: 14px;
-  border-radius: 14px;
-  margin-top: -28px;
-  box-shadow: 0 6px 14px rgba(0,0,0,.1);
+.search-box{
+  background:var(--card);
+  padding:14px;
+  border-radius:14px;
+  margin-top:-28px;
+  box-shadow:0 6px 14px rgba(0,0,0,.1);
 }
 
-input {
-  width: 100%;
-  padding: 14px;
-  font-size: 16px;
-  border-radius: 10px;
-  border: 2px solid var(--primary);
-  outline: none;
-  background: transparent;
-  color: var(--text);
+input,select{
+  width:100%;
+  padding:12px;
+  margin-top:8px;
+  font-size:15px;
+  border-radius:10px;
+  border:2px solid var(--primary);
+  background:transparent;
+  color:var(--text);
 }
 
-/* Loading */
-#loader {
-  display: none;
-  text-align: center;
-  margin: 20px 0;
+#loader{text-align:center;margin:20px;display:none}
+
+.spinner{
+  width:28px;height:28px;
+  border:4px solid var(--muted);
+  border-top-color:var(--primary);
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+  margin:auto;
 }
 
-.spinner {
-  width: 28px;
-  height: 28px;
-  border: 4px solid var(--muted);
-  border-top-color: var(--primary);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-  margin: auto;
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.item{
+  display:flex;
+  gap:12px;
+  background:var(--card);
+  padding:12px;
+  border-radius:14px;
+  margin-bottom:14px;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
+  cursor:pointer;
 }
 
-@keyframes spin {
-  to { transform: rotate(360deg); }
+.thumb{
+  width:80px;
+  height:110px;
+  border-radius:10px;
+  background:#ccc center/cover no-repeat;
+  flex-shrink:0;
 }
 
-/* Result card */
-.item {
-  display: flex;
-  gap: 12px;
-  background: var(--card);
-  padding: 12px;
-  border-radius: 14px;
-  margin-bottom: 14px;
-  box-shadow: 0 4px 10px rgba(0,0,0,.08);
-  cursor: pointer;
-}
+.item-title{font-weight:600;margin-bottom:6px}
 
-.thumb {
-  width: 80px;
-  height: 110px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  background-size: cover;
-  background-position: center;
-  background-color: #ccc;
-}
+.preview{font-size:14px;color:var(--muted)}
 
-.item-body {
-  flex: 1;
-}
-
-.item-title {
-  font-weight: 600;
-  margin-bottom: 6px;
-}
-
-.preview {
-  font-size: 14px;
-  color: var(--muted);
-}
-
-mark {
-  background: #fff1b8;
-  padding: 0 3px;
-  border-radius: 4px;
+mark{
+  background:#fff1b8;
+  padding:0 3px;
+  border-radius:4px;
 }
 
 /* Bottom sheet */
-#sheet {
-  position: fixed;
-  left: 0;
-  right: 0;
-  bottom: -100%;
-  background: var(--card);
-  border-radius: 18px 18px 0 0;
-  padding: 18px;
-  box-shadow: 0 -8px 20px rgba(0,0,0,.3);
-  transition: bottom .3s ease;
-  max-height: 80%;
-  overflow-y: auto;
+#sheet{
+  position:fixed;
+  left:0;right:0;
+  bottom:-100%;
+  background:var(--card);
+  border-radius:18px 18px 0 0;
+  padding:18px;
+  box-shadow:0 -8px 20px rgba(0,0,0,.3);
+  transition:.3s;
+  max-height:80%;
+  overflow:auto;
 }
 
-#sheet.show { bottom: 0; }
+#sheet.show{bottom:0}
 
-.close {
-  text-align: right;
-  font-size: 14px;
-  cursor: pointer;
-  color: var(--muted);
-}
+.close{text-align:right;color:var(--muted);cursor:pointer}
 </style>
 </head>
 
@@ -168,17 +138,16 @@ mark {
 
 <div class="container">
   <div class="search-box">
-    <input id="q" placeholder="Cari judul atau kata kunci VN..." oninput="searchVN()">
+    <input id="q" placeholder="Cari VN..." oninput="searchVN()">
+    <select id="tagFilter" onchange="searchVN()">
+      <option value="">Semua Genre</option>
+    </select>
   </div>
 
-  <div id="loader">
-    <div class="spinner"></div>
-  </div>
-
+  <div id="loader"><div class="spinner"></div></div>
   <div id="results"></div>
 </div>
 
-<!-- Bottom Sheet -->
 <div id="sheet">
   <div class="close" onclick="closeSheet()">Tutup ✕</div>
   <h3 id="sheetTitle"></h3>
@@ -187,69 +156,85 @@ mark {
 </div>
 
 <script>
-let posts = [];
+let posts=[];
+let tags=new Set();
 
-function toggleDark() {
+function toggleDark(){
   document.body.classList.toggle("dark");
 }
 
-function loadFeed(data) {
-  posts = data.feed.entry || [];
-  loader.style.display = "none";
+function loadFeed(data){
+  posts=data.feed.entry||[];
+  loader.style.display="none";
+
+  posts.forEach(p=>{
+    (p.category||[]).forEach(c=>tags.add(c.term));
+  });
+
+  tags.forEach(t=>{
+    tagFilter.innerHTML+=`<option>${t}</option>`;
+  });
+
+  localStorage.setItem("vn_cache",JSON.stringify(posts));
 }
 
-function highlight(text, key) {
-  return text.replace(new RegExp(`(${key})`, "gi"), "<mark>$1</mark>");
+function highlight(t,k){
+  return t.replace(new RegExp(`(${k})`,"gi"),"<mark>$1</mark>");
 }
 
-function getThumbnail(p) {
-  if (p.media$thumbnail) {
-    return p.media$thumbnail.url.replace("s72-c", "s300");
-  }
-  const match = (p.summary?.$t || "").match(/<img.*?src="(.*?)"/);
-  if (match) return match[1];
-  return "https://via.placeholder.com/300x420?text=No+Image";
+function getThumb(p){
+  if(p.media$thumbnail)
+    return p.media$thumbnail.url.replace("s72-c","s300");
+  let m=(p.summary?.$t||"").match(/<img.*?src="(.*?)"/);
+  return m?m[1]:"https://via.placeholder.com/300x420?text=No+Image";
 }
 
-function searchVN() {
-  const key = q.value.toLowerCase();
-  results.innerHTML = "";
-  if (!key || posts.length === 0) return;
+function searchVN(){
+  let k=q.value.toLowerCase();
+  let tag=tagFilter.value;
+  results.innerHTML="";
+  if(!k)return;
 
-  posts.forEach(p => {
-    const title = p.title.$t;
-    const summary = p.summary ? p.summary.$t : "";
-    if (title.toLowerCase().includes(key) || summary.toLowerCase().includes(key)) {
-      const thumb = getThumbnail(p);
-      const link = p.link.find(l => l.rel === "alternate").href;
+  posts.forEach(p=>{
+    let title=p.title.$t;
+    let sum=p.summary?.$t||"";
+    let cats=(p.category||[]).map(c=>c.term);
 
-      results.innerHTML += `
-        <div class="item" onclick="openSheet('${encodeURIComponent(title)}','${encodeURIComponent(summary)}','${link}')">
-          <div class="thumb" style="background-image:url('${thumb}')"></div>
-          <div class="item-body">
-            <div class="item-title">${highlight(title, key)}</div>
-            <div class="preview">${highlight(summary.slice(0,100), key)}...</div>
-          </div>
-        </div>`;
+    if((title+sum).toLowerCase().includes(k) &&
+       (!tag||cats.includes(tag))){
+      results.innerHTML+=`
+      <div class="item" onclick="openSheet('${encodeURIComponent(title)}','${encodeURIComponent(sum)}','${p.link.find(l=>l.rel==='alternate').href}')">
+        <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+        <div>
+          <div class="item-title">${highlight(title,k)}</div>
+          <div class="preview">${highlight(sum.slice(0,100),k)}...</div>
+        </div>
+      </div>`;
     }
   });
 }
 
-function openSheet(title, content, link) {
-  sheetTitle.innerText = decodeURIComponent(title);
-  sheetContent.innerText = decodeURIComponent(content);
-  sheetLink.href = link;
+function openSheet(t,c,l){
+  sheetTitle.innerText=decodeURIComponent(t);
+  sheetContent.innerText=decodeURIComponent(c);
+  sheetLink.href=l;
   sheet.classList.add("show");
 }
 
-function closeSheet() {
-  sheet.classList.remove("show");
-}
+function closeSheet(){sheet.classList.remove("show")}
 
-loader.style.display = "block";
+loader.style.display="block";
+
+/* Offline cache */
+let cache=localStorage.getItem("vn_cache");
+if(cache){
+  posts=JSON.parse(cache);
+  loader.style.display="none";
+}
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&max-results=150&callback=loadFeed"></script>
 
 </body>
 </html>
+
