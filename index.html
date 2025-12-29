@@ -4,13 +4,39 @@
 <meta charset="UTF-8">
 <title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-/* --- Styles sama seperti versi final sebelumnya --- */
+/* --- CSS Lengkap --- */
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
 body.dark{background:#121212;color:#eee;}
-/* Tambahkan style sheet, header, container, grid, item, overlay, floating nav, toast, dll */
-/* ... kode CSS sama seperti versi final sebelumnya ... */
+.container{padding:15px;}
+.header{background:#ffcc33;padding:12px;font-weight:bold;display:flex;justify-content:space-between;align-items:center;}
+.toggle-dark{cursor:pointer;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:12px;}
+.item{background:#fff;border-radius:10px;overflow:hidden;box-shadow:0 2px 6px rgba(0,0,0,0.1);cursor:pointer;display:flex;flex-direction:column;}
+body.dark .item{background:#1f1f1f;}
+.thumb{width:100%;height:160px;background-size:cover;background-position:center;}
+.item-title{padding:6px;font-weight:bold;font-size:14px;}
+.preview{padding:0 6px 6px;font-size:12px;color:#555;}
+body.dark .preview{color:#ccc;}
+.sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-radius:20px 20px 0 0;padding:20px;transition:.3s;z-index:1000;}
+body.dark .sheet{background:#1f1f1f;}
+.sheet.show{bottom:0;}
+.sheet iframe{width:100%;height:300px;border:none;margin-top:10px;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,0.4);display:none;z-index:900;}
+.overlay.show{display:block;}
+.floating-nav{position:fixed;bottom:0;left:0;right:0;background:#fff;display:flex;border-top:1px solid #ddd;z-index:1001;}
+body.dark .floating-nav{background:#1f1f1f;}
+.floating-nav button{flex:1;text-align:center;padding:10px;border:none;background:none;font-size:16px;cursor:pointer;}
+.overlay-menu{position:fixed;right:-200px;top:0;width:200px;height:100%;background:#fff;box-shadow:-2px 0 6px rgba(0,0,0,0.2);transition:.3s;z-index:1002;padding:15px;}
+body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
+.overlay-menu.show{right:0;}
+.toast{position:fixed;bottom:60px;left:50%;transform:translateX(-50%);background:#ffcc33;padding:10px 20px;border-radius:10px;display:none;z-index:1003;}
+.empty{text-align:center;color:#888;padding:20px;}
+body.dark .empty{color:#ccc;}
+input,select,button{padding:8px;border-radius:8px;border:1px solid #ccc;width:100%;margin-bottom:10px;}
+body.dark input,body.dark select{background:#1f1f1f;color:#eee;border-color:#444;}
 </style>
 </head>
 <body>
@@ -22,33 +48,17 @@ body.dark{background:#121212;color:#eee;}
   <div class="toggle-dark" onclick="toggleDark()">🌙</div>
 </div>
 
-<div id="page-home" class="container show">
-  <div id="homeSearchBar">
-    <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="showSuggestions(this,homeSuggestions)">
-    <button onclick="doHomeSearch()">Search</button>
-    <div id="homeSuggestions" class="autocomplete-list"></div>
-  </div>
+<div id="page-home" class="container">
+  <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="homeSearch()">
   <div id="homeResults" class="grid"></div>
   <div id="emptyHome" class="empty">Belum ada rekomendasi</div>
 </div>
 
-<div id="page-search" class="container">
-  <div id="searchBar">
-    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="lastKey=this.value;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();">
-  </div>
-  <select id="tagFilter" onchange="searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();"><option value="">Semua Genre</option></select>
+<div id="page-search" class="container" style="display:none;">
+  <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="searchVN()">
+  <select id="tagFilter" onchange="searchVN()"><option value="">Semua Genre</option></select>
   <div id="results" class="grid"></div>
   <div id="empty" class="empty">Tidak ada hasil</div>
-</div>
-
-<div id="page-fav" class="container">
-  <div id="favResults" class="grid"></div>
-  <div id="emptyFav" class="empty">Belum ada VN favorit</div>
-</div>
-
-<div id="page-about" class="container">
-  <h3>Tentang Aplikasi</h3>
-  <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
 </div>
 
 <div class="overlay" onclick="closeSheet()"></div>
@@ -57,34 +67,27 @@ body.dark{background:#121212;color:#eee;}
   <h3 id="sheetTitle"></h3>
   <div id="sheetGenre" class="genre"></div>
   <p id="sheetSum"></p>
-  <span class="fav" onclick="toggleFav()">❤️</span>
   <iframe id="sheetFrame"></iframe>
 </div>
 
 <div class="floating-nav">
   <button onclick="showTab('home')">🏠</button>
   <button onclick="showTab('search')">🔍</button>
-  <button onclick="showTab('fav')">❤️</button>
   <button onclick="toggleOverlayMenu()">☰</button>
 </div>
 
 <div class="overlay-menu" id="overlayMenu">
   <button onclick="showTab('home')">Home 🏠</button>
   <button onclick="showTab('search')">Search 🔍</button>
-  <button onclick="showTab('fav')">Favorites ❤️</button>
-  <button onclick="showTab('about')">About ℹ️</button>
   <button onclick="toggleOverlayMenu()">Close ✖️</button>
 </div>
 
 <div class="toast" id="toast">VN Baru Tersedia!</div>
 
 <script>
-// --- Script sama seperti versi final sebelumnya ---
-// Variabel global
-let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
-let favs=JSON.parse(localStorage.getItem("favs")||"[]");
-let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
+let posts=[], sheet=document.getElementById("sheet"), overlay=document.querySelector(".overlay"), q=document.getElementById("q"), tagFilter=document.getElementById("tagFilter");
 let displayedLinks = new Set();
+let searchOffset=0, searchLimit=10;
 
 // Splash
 setTimeout(()=>document.getElementById("splash").remove(),1500);
@@ -93,53 +96,123 @@ setTimeout(()=>document.getElementById("splash").remove(),1500);
 function toggleDark(){document.body.classList.toggle("dark");}
 
 // Tabs
-function showTab(t){ /* ... sama seperti versi sebelumnya ... */ }
+function showTab(t){
+  document.getElementById("page-home").style.display = t==='home'?'block':'none';
+  document.getElementById("page-search").style.display = t==='search'?'block':'none';
+  closeOverlayMenu();
+}
 
 // Overlay menu
 function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
 function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
 
 // Sheet
-function openSheet(t,s,c,l){
-  currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
-  sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
-  sheetFrame.src=l;updateFavIcon();
-  sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");
+function openSheet(title,sum,genre,link){
+  document.getElementById("sheetTitle").innerText=title;
+  document.getElementById("sheetSum").innerText=sum;
+  document.getElementById("sheetGenre").innerText=genre;
+  document.getElementById("sheetFrame").src=link;
+  sheet.classList.add("show"); overlay.classList.add("show");
 }
-function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
-function toggleFav(){/* ... */}
+function closeSheet(){sheet.classList.remove("show"); overlay.classList.remove("show");}
 
-// Fetch feed, checkNewVN, showToast, loadTags, buildSuggestions, showSuggestions, doHomeSearch, loadMoreResults
-// --- sama seperti versi final sebelumnya ---
-
-// Infinite scroll
-window.addEventListener('scroll', () => {
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
-    if(searchOffset < posts.length) loadMoreResults();
-  }
-});
-
-// Tangani tombol back di Android
+// Handle back button Android
 window.addEventListener('popstate', function(event) {
   if(sheet.classList.contains('show')){
-    closeSheet(); // Tutup sheet dulu
-    history.pushState(null, null, location.href); // Cegah back keluar
+    closeSheet();
+    history.pushState(null, null, location.href);
   }
 });
-// Push state awal agar back bisa di-handle
 history.pushState(null, null, location.href);
 
 // Fetch feed
-function loadFeed(d){ /* ... sama seperti versi final sebelumnya ... */ }
-function fetchFeed(){ /* ... */ }
+function loadFeed(d){
+  posts = d.feed.entry||[];
+  loadTags();
+  loadHome();
+}
+
+// Load tags
+function loadTags(){
+  let set = new Set();
+  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
+  tagFilter.innerHTML='<option value="">Semua Genre</option>';
+  [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option value="${t}">${t}</option>`);
+}
+
+// Get thumbnail
+function getThumb(p){
+  return p.media$thumbnail?.url || "https://via.placeholder.com/150";
+}
+
+// Home load
+function loadHome(){
+  const home=document.getElementById("homeResults");
+  home.innerHTML="";
+  posts.slice(0,10).forEach(p=>{
+    let title=p.title.$t;
+    let sum=p.summary?.$t||"";
+    let genre=(p.category||[]).map(x=>x.term).join(", ");
+    let link=p.link.find(l=>l.rel==='alternate').href;
+    let div=document.createElement("div");
+    div.className="item";
+    div.innerHTML=`<div class="thumb" style="background-image:url('${getThumb(p)}')"></div><div class="item-title">${title}</div>`;
+    div.onclick=()=>openSheet(title,sum,genre,link);
+    home.appendChild(div);
+  });
+}
+
+// Search
+function searchVN(){
+  const key = q.value.toLowerCase();
+  const tag = tagFilter.value;
+  const res = document.getElementById("results");
+  res.innerHTML="";
+  displayedLinks.clear();
+  searchOffset=0;
+  loadMoreResults();
+}
+
+function loadMoreResults(){
+  const key=q.value.toLowerCase();
+  const tag=tagFilter.value;
+  const res=document.getElementById("results");
+  let count=0;
+  for(let i=searchOffset;i<posts.length && count<searchLimit;i++){
+    let p=posts[i];
+    let title=p.title.$t;
+    let sum=p.summary?.$t||"";
+    let genre=(p.category||[]).map(x=>x.term);
+    let link=p.link.find(l=>l.rel==='alternate').href;
+    if(displayedLinks.has(link)) continue;
+    if((!key||(title+sum).toLowerCase().includes(key)) && (!tag||genre.includes(tag))){
+      displayedLinks.add(link);
+      let div=document.createElement("div");
+      div.className="item";
+      div.innerHTML=`<div class="thumb" style="background-image:url('${getThumb(p)}')"></div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,50)}...</div>`;
+      div.onclick=()=>openSheet(title,sum,genre.join(", "),link);
+      res.appendChild(div);
+      count++;
+    }
+    searchOffset++;
+  }
+}
+
+// Infinite scroll
+window.addEventListener('scroll',()=>{
+  if(window.innerHeight+window.scrollY>=document.body.offsetHeight-100){
+    loadMoreResults();
+  }
+});
+
+// Fetch feed
+function fetchFeed(){
+  const script=document.createElement("script");
+  script.src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed";
+  document.body.appendChild(script);
+}
 fetchFeed();
-
-// Helper
-function getThumb(p){ /* ... sama seperti versi final sebelumnya ... */ }
-
 </script>
-
-<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
 
 </body>
 </html>
