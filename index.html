@@ -59,7 +59,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <div class="toggle-dark" onclick="toggleDark()">🌙</div>
 </div>
 
-<!-- HOME -->
 <div id="page-home" class="container show">
   <div id="homeSearchBar">
     <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="showSuggestions(this,homeSuggestions)">
@@ -70,7 +69,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <div id="emptyHome" class="empty">Belum ada rekomendasi</div>
 </div>
 
-<!-- SEARCH -->
 <div id="page-search" class="container">
   <div id="searchBar">
     <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="showSuggestions(this,searchSuggestions)">
@@ -82,13 +80,11 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
 
-<!-- FAVORITES -->
 <div id="page-fav" class="container">
   <div id="favResults" class="grid"></div>
   <div id="emptyFav" class="empty">Belum ada VN favorit</div>
 </div>
 
-<!-- ABOUT -->
 <div id="page-about" class="container">
   <h3>Tentang Aplikasi</h3>
   <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
@@ -125,6 +121,7 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
 let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
+let displayedLinks = new Set();
 
 // Splash
 setTimeout(()=>document.getElementById("splash").remove(),1500);
@@ -215,25 +212,32 @@ function showSuggestions(inputEl,listEl){
 function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;searchVN(key);}
 function searchVN(keyInput){
   if(posts.length===0) return;
-  const key=(keyInput||q.value).toLowerCase(); results.innerHTML=""; empty.style.display="none"; searchOffset=0; lastKey=key;
+  const key=(keyInput||q.value).toLowerCase();
+  lastKey=key;
+  searchOffset=0;
+  displayedLinks.clear();
+  results.innerHTML="";
+  empty.style.display="none";
   loadMoreResults();
 }
 function loadMoreResults(){
   const tag=tagFilter.value.toLowerCase();let count=0;
   for(let i=searchOffset;i<posts.length;i++){
-    const p=posts[i]; const title=p.title.$t, sum=p.summary?.$t||""; const cats=(p.category||[]).map(x=>x.term);
+    const p=posts[i]; const link=p.link.find(l=>l.rel==="alternate").href;
+    if(displayedLinks.has(link)) continue;
+    const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
     const text=(title+sum+cats.join(" ")).toLowerCase();
-    if((!lastKey||text.includes(lastKey))&&(!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
-      const highlightedTitle=title.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
-      const highlightedSum=sum.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
-      results.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
+    if((!lastKey || text.includes(lastKey)) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
+      results.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
       <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div><div class="item-title">${highlightedTitle}</div><div class="preview">${highlightedSum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
+      <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
+      displayedLinks.add(link);
       count++;
     }
-    if(count>=searchLimit){searchOffset=i+1;return;}
+    if(count >= searchLimit){searchOffset = i + 1; return;}
   }
-  if(count===0) empty.style.display="block";
+  searchOffset = posts.length;
+  if(count === 0) empty.style.display="block";
 }
 
 // Infinite scroll
