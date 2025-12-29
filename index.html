@@ -6,43 +6,102 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
+:root {
+  --primary: #d8a100;
+  --bg: #f6f6f6;
+  --card: #ffffff;
+  --text: #222;
+  --muted: #777;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: sans-serif;
-  padding: 15px;
+  margin: 0;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Header */
+header {
+  background: var(--primary);
+  color: white;
+  padding: 18px 16px;
+  font-size: 20px;
+  font-weight: bold;
+  text-align: center;
+}
+
+/* Container */
+.container {
+  padding: 16px;
+}
+
+/* Search box */
+.search-box {
+  background: var(--card);
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  margin-top: -28px;
 }
 
 input {
   width: 100%;
-  padding: 12px;
+  padding: 14px;
   font-size: 16px;
-  border: 2px solid #d8a100;
-  border-radius: 6px;
+  border-radius: 10px;
+  border: 2px solid var(--primary);
+  outline: none;
 }
 
+/* Status */
 #status {
-  margin-top: 8px;
-  color: #777;
+  margin: 14px 4px;
+  font-size: 14px;
+  color: var(--muted);
 }
 
+/* Results */
 .item {
-  margin: 12px 0;
+  background: var(--card);
+  padding: 14px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
 }
 
-a {
-  font-weight: bold;
+.item a {
+  color: var(--text);
+  font-weight: 600;
   text-decoration: none;
+}
+
+.item a:hover {
+  text-decoration: underline;
 }
 </style>
 </head>
 
 <body>
 
-<h2>Search Angkringan Visual Novel</h2>
+<header>
+  Angkringan VN Search
+</header>
 
-<input id="q" placeholder="Cari judul atau kata kunci VN..." oninput="searchVN()">
+<div class="container">
 
-<div id="status">Memuat data...</div>
-<div id="results"></div>
+  <div class="search-box">
+    <input id="q" placeholder="Cari judul atau kata kunci VN..." oninput="searchVN()">
+  </div>
+
+  <div id="status">Memuat data...</div>
+  <div id="results"></div>
+
+</div>
 
 <script>
 let posts = [];
