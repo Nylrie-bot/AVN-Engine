@@ -2,7 +2,7 @@
   "name": "Angkringan Visual Novel",
   "short_name": "AVN",
   "description": "Aplikasi search engine untuk Visual Novel berbasis feed Angkringan Visual Novel. Cari judul, genre, atau kata kunci dengan cepat dan mudah.",
-  "start_url": "/index.html",
+  "start_url": "/AVN-Engine/index.html",
   "display": "standalone",
   "display_override": ["fullscreen", "window-controls-overlay"],
   "background_color": "#ffffff",
