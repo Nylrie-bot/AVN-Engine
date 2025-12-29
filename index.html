@@ -71,11 +71,9 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 
 <div id="page-search" class="container">
   <div id="searchBar">
-    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="showSuggestions(this,searchSuggestions)">
-    <button onclick="searchVN(q.value)">Search</button>
-    <div id="searchSuggestions" class="autocomplete-list"></div>
+    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="lastKey=this.value;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();">
   </div>
-  <select id="tagFilter" onchange="searchVN(q.value)"><option value="">Semua Genre</option></select>
+  <select id="tagFilter" onchange="searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();"><option value="">Semua Genre</option></select>
   <div id="results" class="grid"></div>
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
@@ -203,23 +201,15 @@ function showSuggestions(inputEl,listEl){
   if(!key) return;
   suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
     const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
-    div.onclick=()=>{inputEl.value=t;searchVN(q.value);listEl.innerHTML="";};
+    div.onclick=()=>{inputEl.value=t;lastKey=t;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();listEl.innerHTML="";};
     listEl.appendChild(div);
   });
 }
 
 // Search
-function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;searchVN(key);}
-function searchVN(keyInput){
-  if(posts.length===0) return;
-  const key=(keyInput||q.value).toLowerCase();
-  lastKey=key;
-  searchOffset=0;
-  displayedLinks.clear();
-  results.innerHTML="";
-  empty.style.display="none";
-  loadMoreResults();
-}
+function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;lastKey=key;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();}
+
+// Infinite scroll
 function loadMoreResults(){
   const tag=tagFilter.value.toLowerCase();let count=0;
   for(let i=searchOffset;i<posts.length;i++){
@@ -237,12 +227,11 @@ function loadMoreResults(){
     if(count >= searchLimit){searchOffset = i + 1; return;}
   }
   searchOffset = posts.length;
-  if(count === 0) empty.style.display="block";
+  if(count === 0 && lastKey) empty.style.display="block";
 }
 
-// Infinite scroll
 window.addEventListener('scroll', () => {
-  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100){
+  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
     if(searchOffset < posts.length) loadMoreResults();
   }
 });
