@@ -39,15 +39,15 @@ body.dark .item{background:#1f1f1f;}
 body.dark .sheet{background:#1f1f1f;color:#eee;}
 .sheet.show{bottom:0;}
 .sheet iframe{width:100%;height:70vh;border:none;border-radius:12px;}
-.fav, .share{font-size:20px;float:right;cursor:pointer;user-select:none;margin-left:10px;}
+.fav{font-size:20px;float:right;cursor:pointer;user-select:none;margin-left:10px;}
 .floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
 .floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
 .overlay-menu{position:fixed;top:0;right:0;width:250px;height:100%;background:#fff;transform:translateX(100%);transition:transform 0.3s ease;z-index:1000;padding:20px;overflow-y:auto;}
 body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 .overlay-menu.show{transform:translateX(0);}
 .overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
-.pull-refresh{position:relative;}
-.pull-refresh span{position:absolute;top:-30px;left:50%;transform:translateX(-50%);opacity:0.6;font-size:12px;}
+.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#ffcc33;color:#000;padding:12px 20px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.2);opacity:0;transition:opacity 0.5s;z-index:1001;}
+.toast.show{opacity:1;}
 </style>
 </head>
 <body>
@@ -101,7 +101,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <div id="sheetGenre" class="genre"></div>
   <p id="sheetSum"></p>
   <span class="fav" onclick="toggleFav()">❤️</span>
-  <span class="share" onclick="shareVN()">🔗</span>
   <iframe id="sheetFrame"></iframe>
 </div>
 
@@ -120,105 +119,151 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <button onclick="toggleOverlayMenu()">Close ✖️</button>
 </div>
 
+<div class="toast" id="toast">VN Baru Tersedia!</div>
+
 <script>
 let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
-let suggestions=[], searchOffset=0, searchLimit=20, lastKey="";
+let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
 
+// Splash
+setTimeout(()=>document.getElementById("splash").remove(),1500);
+
+// Dark mode
+function toggleDark(){document.body.classList.toggle("dark");}
+
+// Tabs
+function showTab(t){
+  document.getElementById("page-home").style.display=t==="home"?"block":"none";
+  document.getElementById("page-search").style.display=t==="search"?"block":"none";
+  document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
+  document.getElementById("page-about").style.display=t==="about"?"block":"none";
+  if(t==="fav") renderFav();
+  closeOverlayMenu();
+}
+
+// Overlay menu
+function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
+function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
+
+// Sheet
+function openSheet(t,s,c,l){
+  currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
+  sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
+  sheetFrame.src=l;updateFavIcon();
+  sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");
+}
+function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
+function toggleFav(){
+  if(favs.includes(currentLink)) favs=favs.filter(x=>x!==currentLink);
+  else favs.push(currentLink);
+  localStorage.setItem("favs",JSON.stringify(favs));updateFavIcon();
+}
+function updateFavIcon(){document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";}
+
+// Fetch feed
 function loadFeed(d){
-    posts=d.feed.entry||[];
-    loadTags(); buildSuggestions(); renderHome();
-    document.getElementById("splash").remove();
+  const newPosts=d.feed.entry||[];
+  checkNewVN(newPosts);
+  posts=newPosts;
+  loadTags(); buildSuggestions(); renderHome();
 }
+function fetchFeed(){
+  const script=document.createElement("script");
+  script.src=`https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed&_=${Date.now()}`;
+  document.body.appendChild(script);
+}
+fetchFeed();
+
+// Check new VN
+function checkNewVN(newPosts){
+  const newLinks=newPosts.map(p=>p.link.find(l=>l.rel==="alternate").href);
+  const diff=newLinks.filter(l=>!lastVNLinks.includes(l));
+  if(diff.length>0) showToast(`${diff.length} VN Baru Tersedia!`);
+  lastVNLinks=newLinks;
+  localStorage.setItem("vnLinks",JSON.stringify(lastVNLinks));
+}
+
+// Toast
+function showToast(msg){
+  const t=document.getElementById("toast");
+  t.innerText=msg;
+  t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3000);
+}
+
+// Tags & suggestions
 function loadTags(){
-    const set=new Set();
-    posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
-    tagFilter.innerHTML='<option value="">Semua Genre</option>';
-    [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
+  const set=new Set();
+  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
+  tagFilter.innerHTML='<option value="">Semua Genre</option>';
+  [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
 }
-function getThumb(p){
-    let thumb = p.media$thumbnail?.url;
-    const match = p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
-    if(match) thumb = match[1];
-    if(thumb && thumb.includes('s72-c')) thumb = thumb.replace('s72-c','s400-c');
-    return thumb || "https://via.placeholder.com/400x250";
-}
+let suggestions=[];
 function buildSuggestions(){suggestions=posts.map(p=>p.title.$t);}
 function showSuggestions(inputEl,listEl){
-    const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
-    if(!key) return;
-    suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
-        const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
-        div.onclick=()=>{inputEl.value=t;searchVN(q.value);listEl.innerHTML="";};
-        listEl.appendChild(div);
-    });
+  const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
+  if(!key) return;
+  suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
+    const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
+    div.onclick=()=>{inputEl.value=t;searchVN(q.value);listEl.innerHTML="";};
+    listEl.appendChild(div);
+  });
 }
+
+// Search
 function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;searchVN(key);}
 function searchVN(keyInput){
-    if(posts.length===0) return;
-    const key=(keyInput||q.value).toLowerCase();
-    const tag=tagFilter.value.toLowerCase();
-    results.innerHTML=""; empty.style.display="none"; searchOffset=0; lastKey=key;
-    loadMoreResults();
+  if(posts.length===0) return;
+  const key=(keyInput||q.value).toLowerCase(); results.innerHTML=""; empty.style.display="none"; searchOffset=0; lastKey=key;
+  loadMoreResults();
 }
 function loadMoreResults(){
-    const tag=tagFilter.value.toLowerCase();let count=0;
-    for(let i=searchOffset;i<posts.length;i++){
-        const p=posts[i]; const title=p.title.$t, sum=p.summary?.$t||""; const cats=(p.category||[]).map(x=>x.term);
-        const text=(title+sum+cats.join(" ")).toLowerCase();
-        if((!lastKey||text.includes(lastKey))&&(!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
-            const highlightedTitle=title.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
-            const highlightedSum=sum.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
-            results.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
-            <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-            <div><div class="item-title">${highlightedTitle}</div><div class="preview">${highlightedSum.slice(0,90)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
-            count++;
-        }
-        if(count>=searchLimit){searchOffset=i+1;return;}
+  const tag=tagFilter.value.toLowerCase();let count=0;
+  for(let i=searchOffset;i<posts.length;i++){
+    const p=posts[i]; const title=p.title.$t, sum=p.summary?.$t||""; const cats=(p.category||[]).map(x=>x.term);
+    const text=(title+sum+cats.join(" ")).toLowerCase();
+    if((!lastKey||text.includes(lastKey))&&(!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
+      const highlightedTitle=title.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
+      const highlightedSum=sum.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
+      results.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
+      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+      <div><div class="item-title">${highlightedTitle}</div><div class="preview">${highlightedSum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
+      count++;
     }
-    if(count===0) empty.style.display="block";
+    if(count>=searchLimit){searchOffset=i+1;return;}
+  }
+  if(count===0) empty.style.display="block";
 }
+
+// Infinite scroll
+window.addEventListener('scroll', () => {
+  if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 100){
+    if(searchOffset < posts.length) loadMoreResults();
+  }
+});
+
+// Home render
 function renderHome(){
-    const container=homeResults;container.innerHTML="";
-    let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
-    top.forEach(p=>{
-        const t=p.title.$t,s=p.summary?.$t||"",c=(p.category||[]).map(x=>x.term),l=p.link.find(l=>l.rel==="alternate").href;
-        container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
-        <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-        <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
-    });
+  const container=homeResults;container.innerHTML="";
+  let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
+  top.forEach(p=>{
+    const t=p.title.$t,s=p.summary?.$t||"",c=(p.category||[]).map(x=>x.term),l=p.link.find(l=>l.rel==="alternate").href;
+    container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+    <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+    <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
+  });
 }
+
+// Favorites
 function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
 favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
 <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
 <div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;}});}
-function openSheet(t,s,c,l){currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
-sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
-sheetFrame.src=l;updateFavIcon();sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");}
-function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
-function toggleFav(){if(favs.includes(currentLink)) favs=favs.filter(x=>x!==currentLink);else favs.push(currentLink);localStorage.setItem("favs",JSON.stringify(favs));updateFavIcon();}
-function updateFavIcon(){document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";}
-function shareVN(){navigator.clipboard.writeText(currentLink);alert("Link VN disalin!");}
-function toggleDark(){document.body.classList.toggle("dark");}
-function showTab(t){document.getElementById("page-home").style.display=t==="home"?"block":"none";
-document.getElementById("page-search").style.display=t==="search"?"block":"none";
-document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
-document.getElementById("page-about").style.display=t==="about"?"block":"none";
-if(t==="fav") renderFav();closeOverlayMenu();}
-function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
-function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
-
-/* SPLASH */
-setTimeout(()=>document.getElementById("splash").remove(),1500);
-
-/* FETCH FEED TERBARU */
-function fetchFeed(){
-    const script=document.createElement("script");
-    script.src=`https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed&_=${Date.now()}`;
-    document.body.appendChild(script);
-}
-fetchFeed();
+function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);if(match)thumb=match[1];if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');return thumb||"https://via.placeholder.com/400x250";}
 </script>
+
+<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
 
 </body>
 </html>
