@@ -10,7 +10,7 @@ body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflo
 body.dark{background:#121212;color:#eee;}
 #splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;z-index:999;}
 .header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;position:relative;}
-.toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;}
+.toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;user-select:none;}
 #homeSearchBar, #searchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;position:relative;}
 #homeSearchBar input, #searchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
 #homeSearchBar button, #searchBar button{padding:12px 16px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
@@ -20,9 +20,11 @@ body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;color:#eee;}
 .suggestion-item{padding:8px;cursor:pointer;border-bottom:1px solid #ddd;}
 body.dark .suggestion-item{border-color:#333;}
 .suggestion-item:hover{background:#4285f4;color:#fff;}
-.container{padding:15px;padding-bottom:80px;display:none;}
+.container{padding:15px;padding-bottom:80px;display:none;transition:opacity 0.3s;}
+.container.show{display:block;opacity:1;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
-.item{display:flex;flex-direction:column;gap:8px;background:#f1f3f4;padding:8px;border-radius:12px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;}
+.item{display:flex;flex-direction:column;gap:8px;background:#f1f3f4;padding:8px;border-radius:12px;cursor:pointer;transition:transform 0.3s,box-shadow 0.3s,opacity 0.3s;opacity:0;}
+.item.show{opacity:1;}
 body.dark .item{background:#1f1f1f;}
 .item:hover{transform:translateY(-3px);box-shadow:0 6px 12px rgba(0,0,0,.2);}
 .thumb{width:100%;height:180px;border-radius:10px;background-size:cover;background-position:center;}
@@ -37,13 +39,15 @@ body.dark .item{background:#1f1f1f;}
 body.dark .sheet{background:#1f1f1f;color:#eee;}
 .sheet.show{bottom:0;}
 .sheet iframe{width:100%;height:70vh;border:none;border-radius:12px;}
-.fav{font-size:20px;float:right;cursor:pointer;user-select:none;}
+.fav, .share{font-size:20px;float:right;cursor:pointer;user-select:none;margin-left:10px;}
 .floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
 .floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
 .overlay-menu{position:fixed;top:0;right:0;width:250px;height:100%;background:#fff;transform:translateX(100%);transition:transform 0.3s ease;z-index:1000;padding:20px;overflow-y:auto;}
 body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 .overlay-menu.show{transform:translateX(0);}
 .overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
+.pull-refresh{position:relative;}
+.pull-refresh span{position:absolute;top:-30px;left:50%;transform:translateX(-50%);opacity:0.6;font-size:12px;}
 </style>
 </head>
 <body>
@@ -56,7 +60,7 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 </div>
 
 <!-- HOME -->
-<div id="page-home" class="container" style="display:block">
+<div id="page-home" class="container show">
   <div id="homeSearchBar">
     <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="showSuggestions(this,homeSuggestions)">
     <button onclick="doHomeSearch()">Search</button>
@@ -97,6 +101,7 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <div id="sheetGenre" class="genre"></div>
   <p id="sheetSum"></p>
   <span class="fav" onclick="toggleFav()">❤️</span>
+  <span class="share" onclick="shareVN()">🔗</span>
   <iframe id="sheetFrame"></iframe>
 </div>
 
@@ -143,7 +148,7 @@ function showSuggestions(inputEl,listEl){
     const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
     if(!key) return;
     suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
-        const div=document.createElement("div"); div.textContent=t; div.className="suggestion-item";
+        const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
         div.onclick=()=>{inputEl.value=t;searchVN(q.value);listEl.innerHTML="";};
         listEl.appendChild(div);
     });
@@ -159,31 +164,32 @@ function searchVN(keyInput){
 function loadMoreResults(){
     const tag=tagFilter.value.toLowerCase();let count=0;
     for(let i=searchOffset;i<posts.length;i++){
-        const p=posts[i]; const title=p.title.$t; const sum=p.summary?.$t||""; const cats=(p.category||[]).map(x=>x.term);
+        const p=posts[i]; const title=p.title.$t, sum=p.summary?.$t||""; const cats=(p.category||[]).map(x=>x.term);
         const text=(title+sum+cats.join(" ")).toLowerCase();
         if((!lastKey||text.includes(lastKey))&&(!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
-            results.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
+            const highlightedTitle=title.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
+            const highlightedSum=sum.replace(new RegExp(lastKey,'gi'),match=>`<span class="highlight">${match}</span>`);
+            results.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
             <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-            <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,90)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
+            <div><div class="item-title">${highlightedTitle}</div><div class="preview">${highlightedSum.slice(0,90)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
             count++;
         }
         if(count>=searchLimit){searchOffset=i+1;return;}
     }
     if(count===0) empty.style.display="block";
 }
-results.addEventListener("scroll",()=>{if(results.scrollTop+results.clientHeight>=results.scrollHeight-50) loadMoreResults();});
 function renderHome(){
     const container=homeResults;container.innerHTML="";
     let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
     top.forEach(p=>{
         const t=p.title.$t,s=p.summary?.$t||"",c=(p.category||[]).map(x=>x.term),l=p.link.find(l=>l.rel==="alternate").href;
-        container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+        container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
         <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
         <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
     });
 }
 function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
-favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
+favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
 <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
 <div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;}});}
 function openSheet(t,s,c,l){currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
@@ -192,6 +198,7 @@ sheetFrame.src=l;updateFavIcon();sheet.classList.add("show");document.querySelec
 function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
 function toggleFav(){if(favs.includes(currentLink)) favs=favs.filter(x=>x!==currentLink);else favs.push(currentLink);localStorage.setItem("favs",JSON.stringify(favs));updateFavIcon();}
 function updateFavIcon(){document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";}
+function shareVN(){navigator.clipboard.writeText(currentLink);alert("Link VN disalin!");}
 function toggleDark(){document.body.classList.toggle("dark");}
 function showTab(t){document.getElementById("page-home").style.display=t==="home"?"block":"none";
 document.getElementById("page-search").style.display=t==="search"?"block":"none";
@@ -204,7 +211,7 @@ function closeOverlayMenu(){document.getElementById("overlayMenu").classList.rem
 /* SPLASH */
 setTimeout(()=>document.getElementById("splash").remove(),1500);
 
-// -------------------- FETCH FEED TERBARU --------------------
+/* FETCH FEED TERBARU */
 function fetchFeed(){
     const script=document.createElement("script");
     script.src=`https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed&_=${Date.now()}`;
