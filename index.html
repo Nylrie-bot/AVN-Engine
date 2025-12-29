@@ -16,8 +16,7 @@ body{
 
 /* SPLASH */
 #splash{
-  position:fixed;
-  inset:0;
+  position:fixed; inset:0;
   background:#ffcc33;
   display:flex;
   align-items:center;
@@ -39,7 +38,7 @@ body{
 /* CONTENT */
 .container{
   padding:15px;
-  padding-bottom:40px;
+  padding-bottom:60px;
 }
 
 /* INPUT */
@@ -49,10 +48,9 @@ input, select{
   margin-bottom:10px;
   border-radius:12px;
   border:1px solid #ccc;
-  font-size:14px;
 }
 
-/* RESULT CARD */
+/* CARD */
 .item{
   display:flex;
   gap:12px;
@@ -61,40 +59,23 @@ input, select{
   border-radius:16px;
   margin-bottom:12px;
   box-shadow:0 2px 6px rgba(0,0,0,.1);
+  cursor:pointer;
 }
-
 .thumb{
   width:70px;
   height:95px;
   border-radius:10px;
   background-size:cover;
   background-position:center;
-  flex-shrink:0;
 }
+.item-title{font-weight:bold}
+.preview{font-size:13px;opacity:.8}
+.genre{font-size:12px;opacity:.6}
 
-.item-title{
-  font-weight:bold;
-  margin-bottom:4px;
-}
-
-.preview{
-  font-size:13px;
-  opacity:.8;
-  margin-bottom:6px;
-}
-
-.genre{
-  font-size:12px;
-  opacity:.6;
-}
-
-.open{
-  display:inline-block;
-  margin-top:6px;
-  font-size:13px;
-  color:#e6a700;
-  text-decoration:none;
-  font-weight:bold;
+/* FAVORITE */
+.fav{
+  font-size:18px;
+  float:right;
 }
 
 /* EMPTY */
@@ -103,91 +84,60 @@ input, select{
   opacity:.6;
   margin-top:30px;
 }
+
+/* OVERLAY + SHEET */
+.overlay{
+  position:fixed; inset:0;
+  background:rgba(0,0,0,.4);
+  display:none;
+}
+.overlay.show{display:block}
+
+.sheet{
+  position:fixed;
+  left:0; right:0;
+  bottom:-100%;
+  background:#fff;
+  border-radius:20px 20px 0 0;
+  padding:20px;
+  transition:.3s;
+}
+.sheet.show{bottom:0}
+
+.sheet a{
+  display:block;
+  margin-top:15px;
+  padding:12px;
+  background:#ffcc33;
+  text-align:center;
+  border-radius:12px;
+  text-decoration:none;
+  color:#000;
+  font-weight:bold;
+}
 </style>
 </head>
 
 <body>
 
 <div id="splash">VN Search</div>
-
 <div class="header">Visual Novel Search</div>
 
 <div class="container">
-  <input id="q" placeholder="Cari judul, genre, atau kata kunci..." oninput="searchVN()">
-
+  <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="searchVN()">
   <select id="tagFilter" onchange="searchVN()">
     <option value="">Semua Genre</option>
   </select>
 
   <div id="results"></div>
-  <div id="empty" style="display:none">Tidak ada hasil ditemukan</div>
+  <div id="empty" style="display:none">Tidak ada hasil</div>
 </div>
 
-<script>
-let posts = [];
+<div class="overlay" onclick="closeSheet()"></div>
 
-function loadFeed(d){
-  posts = d.feed.entry || [];
-  loadTags();
-  document.getElementById("splash").remove();
-}
-
-function loadTags(){
-  const set = new Set();
-  posts.forEach(p => (p.category||[]).forEach(c => set.add(c.term)));
-  const sel = document.getElementById("tagFilter");
-  sel.innerHTML = '<option value="">Semua Genre</option>';
-  [...set].sort().forEach(t => {
-    sel.innerHTML += `<option>${t}</option>`;
-  });
-}
-
-function getThumb(p){
-  return p.media$thumbnail?.url ||
-    p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1] ||
-    "https://via.placeholder.com/150";
-}
-
-function searchVN(){
-  const key = q.value.toLowerCase();
-  const tag = tagFilter.value.toLowerCase();
-  const res = results;
-  const empty = document.getElementById("empty");
-  res.innerHTML = "";
-  let found = 0;
-
-  posts.forEach(p => {
-    const title = p.title.$t;
-    const sum = p.summary?.$t || "";
-    const cats = (p.category||[]).map(x=>x.term);
-    const text = (title + sum + cats.join(" ")).toLowerCase();
-
-    if(
-      (!key || text.includes(key)) &&
-      (!tag || cats.map(c=>c.toLowerCase()).includes(tag))
-    ){
-      found++;
-      const link = p.link.find(l=>l.rel==="alternate").href;
-
-      res.innerHTML += `
-        <div class="item">
-          <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-          <div>
-            <div class="item-title">${title}</div>
-            <div class="preview">${sum.slice(0,110)}...</div>
-            <div class="genre">${cats.join(", ")}</div>
-            <a class="open" href="${link}" target="_blank">Buka VN →</a>
-          </div>
-        </div>
-      `;
-    }
-  });
-
-  empty.style.display = found ? "none" : "block";
-}
-</script>
-
-<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
-
-</body>
-</html>
+<div class="sheet" id="sheet">
+  <h3 id="sheetTitle"></h3>
+  <div id="sheetGenre" class="genre"></div>
+  <p id="sheetSum"></p>
+  <span class="fav" onclick="toggleFav()">❤️</span>
+  <a id="sheet
