@@ -8,7 +8,6 @@
 <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
 <style>
-/* RESET */
 *{box-sizing:border-box}
 body{
   margin:0;
@@ -36,7 +35,11 @@ body.dark{background:#121212;color:#eee}
   padding:12px;
   background:#ffcc33;
 }
-.nav .title{flex:1;text-align:center;font-weight:bold}
+.nav .title{
+  flex:1;
+  text-align:center;
+  font-weight:bold;
+}
 
 /* CONTAINER */
 .container{padding:15px}
@@ -50,7 +53,9 @@ input,select{
   border:1px solid #ccc;
 }
 body.dark input,body.dark select{
-  background:#1f1f1f;color:#eee;border-color:#444;
+  background:#1f1f1f;
+  color:#eee;
+  border-color:#444;
 }
 
 /* CARD */
@@ -62,19 +67,23 @@ body.dark input,body.dark select{
   border-radius:14px;
   margin-bottom:12px;
   box-shadow:0 2px 6px rgba(0,0,0,.1);
+  cursor:pointer;
 }
 body.dark .item{background:#1f1f1f}
 .thumb{
-  width:70px;height:90px;
+  width:70px;
+  height:90px;
   border-radius:10px;
   background-size:cover;
+  background-position:center;
 }
 .item-title{font-weight:bold}
 .preview{font-size:13px;opacity:.8}
 
 /* BOTTOM SHEET */
 .sheet{
-  position:fixed;left:0;right:0;bottom:-100%;
+  position:fixed;
+  left:0; right:0; bottom:-100%;
   background:#fff;
   border-radius:20px 20px 0 0;
   padding:20px;
@@ -93,7 +102,8 @@ body.dark .sheet{background:#1f1f1f}
   text-decoration:none;
 }
 .overlay{
-  position:fixed;inset:0;
+  position:fixed;
+  inset:0;
   background:rgba(0,0,0,.4);
   display:none;
 }
@@ -102,7 +112,7 @@ body.dark .sheet{background:#1f1f1f}
 /* BOTTOM NAV */
 .bottom-nav{
   position:fixed;
-  left:0;right:0;bottom:0;
+  left:0; right:0; bottom:0;
   background:#fff;
   display:flex;
   border-top:1px solid #ddd;
@@ -164,33 +174,41 @@ body.dark .bottom-nav{background:#1f1f1f}
 let posts=[];
 
 function loadFeed(d){
-  posts=d.feed.entry||[];
+  posts = d.feed.entry || [];
   loadTags();
 }
 
 function loadTags(){
-  let set=new Set();
-  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
-  tagFilter.innerHTML='<option value="">Semua Genre</option>';
-  [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
+  let set = new Set();
+  posts.forEach(p =>
+    (p.category||[]).forEach(c => set.add(c.term))
+  );
+  tagFilter.innerHTML = '<option value="">Semua Genre</option>';
+  [...set].sort().forEach(t =>
+    tagFilter.innerHTML += `<option value="${t}">${t}</option>`
+  );
 }
 
 function getThumb(p){
   return p.media$thumbnail?.url ||
-  p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1] ||
-  "https://via.placeholder.com/150";
+    p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1] ||
+    "https://via.placeholder.com/150";
 }
 
 function searchVN(){
-  let k=q.value.toLowerCase(), tag=tagFilter.value;
-  results.innerHTML="";
-  if(!k&&!tag) return;
+  let k = q.value.toLowerCase();
+  let tag = tagFilter.value;
+  results.innerHTML = "";
+  if(!k && !tag) return;
 
   posts.forEach(p=>{
-    let t=p.title.$t, s=p.summary?.$t||"",
-        c=(p.category||[]).map(x=>x.term);
-    if((!k||(t+s).toLowerCase().includes(k)) && (!tag||c.includes(tag))){
-      results.innerHTML+=`
+    let t = p.title.$t;
+    let s = p.summary?.$t || "";
+    let c = (p.category||[]).map(x=>x.term);
+
+    if((!k || (t+s).toLowerCase().includes(k)) &&
+       (!tag || c.includes(tag))){
+      results.innerHTML += `
       <div class="item" onclick="openSheet(
         '${encodeURIComponent(t)}',
         '${encodeURIComponent(s)}',
@@ -207,9 +225,9 @@ function searchVN(){
 }
 
 function openSheet(t,s,l){
-  sheetTitle.innerText=decodeURIComponent(t);
-  sheetSum.innerText=decodeURIComponent(s);
-  sheetLink.href=l;
+  sheetTitle.innerText = decodeURIComponent(t);
+  sheetSum.innerText = decodeURIComponent(s);
+  sheetLink.href = l;
   sheet.classList.add("show");
   document.querySelector(".overlay").classList.add("show");
 }
@@ -218,17 +236,20 @@ function closeSheet(){
   document.querySelector(".overlay").classList.remove("show");
 }
 
-function toggleDark(){document.body.classList.toggle("dark")}
+function toggleDark(){
+  document.body.classList.toggle("dark");
+}
 
 function showPage(p){
-  document.getElementById("page-search").style.display=p==="search"?"block":"none";
-  document.getElementById("page-about").style.display=p==="about"?"block":"none";
+  page-search.style.display = p==="search" ? "block" : "none";
+  page-about.style.display  = p==="about"  ? "block" : "none";
 }
 
 /* SPLASH */
-setTimeout(()=>document.getElementById("splash").remove(),1500);
-
-ii( </script>
+setTimeout(()=>{
+  document.getElementById("splash").remove();
+},1500);
+</script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
 
