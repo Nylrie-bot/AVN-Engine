@@ -8,10 +8,10 @@
 <style>
 :root {
   --primary: #d8a100;
-  --bg: #f6f6f6;
+  --bg: #f4f4f4;
   --card: #ffffff;
   --text: #222;
-  --muted: #777;
+  --muted: #666;
 }
 
 * {
@@ -20,7 +20,7 @@
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+  font-family: system-ui, -apple-system, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -29,24 +29,24 @@ body {
 header {
   background: var(--primary);
   color: white;
-  padding: 18px 16px;
+  padding: 18px;
   font-size: 20px;
-  font-weight: bold;
+  font-weight: 600;
   text-align: center;
 }
 
-/* Container */
+/* Layout */
 .container {
   padding: 16px;
 }
 
-/* Search box */
+/* Search */
 .search-box {
   background: var(--card);
   padding: 14px;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+  border-radius: 14px;
   margin-top: -28px;
+  box-shadow: 0 6px 14px rgba(0,0,0,.1);
 }
 
 input {
@@ -65,23 +65,41 @@ input {
   color: var(--muted);
 }
 
-/* Results */
+/* Card result */
 .item {
   background: var(--card);
   padding: 14px;
-  border-radius: 10px;
-  margin-bottom: 12px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  border-radius: 14px;
+  margin-bottom: 14px;
+  box-shadow: 0 4px 10px rgba(0,0,0,.08);
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+
+.item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 18px rgba(0,0,0,.12);
 }
 
 .item a {
   color: var(--text);
+  font-size: 16px;
   font-weight: 600;
   text-decoration: none;
+  display: block;
+  margin-bottom: 6px;
 }
 
-.item a:hover {
-  text-decoration: underline;
+.preview {
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.4;
+}
+
+/* Highlight */
+mark {
+  background: #fff1b8;
+  padding: 0 3px;
+  border-radius: 4px;
 }
 </style>
 </head>
@@ -112,6 +130,11 @@ function loadFeed(data) {
     "Data siap (" + posts.length + " post)";
 }
 
+function highlight(text, key) {
+  const reg = new RegExp(`(${key})`, "gi");
+  return text.replace(reg, "<mark>$1</mark>");
+}
+
 function searchVN() {
   const key = document.getElementById("q").value.toLowerCase();
   const res = document.getElementById("results");
@@ -122,15 +145,24 @@ function searchVN() {
   let found = 0;
 
   posts.forEach(p => {
-    const title = p.title.$t.toLowerCase();
-    const summary = (p.summary ? p.summary.$t : "").toLowerCase();
+    const title = p.title.$t;
+    const summary = p.summary ? p.summary.$t : "";
+    const tLower = title.toLowerCase();
+    const sLower = summary.toLowerCase();
 
-    if (title.includes(key) || summary.includes(key)) {
+    if (tLower.includes(key) || sLower.includes(key)) {
       const link = p.link.find(l => l.rel === "alternate").href;
+
       res.innerHTML += `
         <div class="item">
-          <a href="${link}">${p.title.$t}</a>
-        </div>`;
+          <a href="${link}">
+            ${highlight(title, key)}
+          </a>
+          <div class="preview">
+            ${highlight(summary.substring(0, 120), key)}...
+          </div>
+        </div>
+      `;
       found++;
     }
   });
@@ -144,3 +176,4 @@ function searchVN() {
 
 </body>
 </html>
+  
