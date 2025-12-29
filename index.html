@@ -15,8 +15,13 @@ input {
   width: 100%;
   padding: 12px;
   font-size: 16px;
-  border: 2px solid #f4a300;
-  border-radius: 8px;
+  border: 2px solid #d8a100;
+  border-radius: 6px;
+}
+
+#status {
+  margin-top: 8px;
+  color: #777;
 }
 
 .item {
@@ -24,13 +29,8 @@ input {
 }
 
 a {
-  text-decoration: none;
   font-weight: bold;
-  color: #222;
-}
-
-small {
-  color: #666;
+  text-decoration: none;
 }
 </style>
 </head>
@@ -39,26 +39,49 @@ small {
 
 <h2>Search Angkringan Visual Novel</h2>
 
-<input
-  id="q"
-  placeholder="Cari judul atau kata kunci VN..."
-  oninput="searchVN()"
-/>
+<input id="q" placeholder="Cari judul atau kata kunci VN..." oninput="searchVN()">
 
-<div id="results">
-  <small>Memuat data...</small>
-</div>
+<div id="status">Memuat data...</div>
+<div id="results"></div>
 
 <script>
 let posts = [];
-let feedLoaded = false;
 
 function loadFeed(data) {
   posts = data.feed.entry || [];
-  feedLoaded = true;
-  document.getElementById("results").innerHTML =
-    "<small>Data siap. Mulai mengetik…</small>";
+  document.getElementById("status").innerText =
+    "Data siap (" + posts.length + " post)";
 }
 
 function searchVN() {
-  if (!feedLoaded) return;
+  const key = document.getElementById("q").value.toLowerCase();
+  const res = document.getElementById("results");
+  res.innerHTML = "";
+
+  if (!key || posts.length === 0) return;
+
+  let found = 0;
+
+  posts.forEach(p => {
+    const title = p.title.$t.toLowerCase();
+    const summary = (p.summary ? p.summary.$t : "").toLowerCase();
+
+    if (title.includes(key) || summary.includes(key)) {
+      const link = p.link.find(l => l.rel === "alternate").href;
+      res.innerHTML += `
+        <div class="item">
+          <a href="${link}">${p.title.$t}</a>
+        </div>`;
+      found++;
+    }
+  });
+
+  document.getElementById("status").innerText =
+    found ? `Ditemukan ${found} hasil` : "Tidak ada hasil";
+}
+</script>
+
+<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&max-results=150&callback=loadFeed"></script>
+
+</body>
+</html>
