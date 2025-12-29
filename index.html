@@ -11,8 +11,8 @@ body.dark{background:#121212;color:#eee;}
 /* SPLASH */
 #splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;z-index:999;}
 /* HEADER */
-.header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;}
-.toggle-dark{cursor:pointer;font-size:18px;}
+.header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;position:relative;}
+.toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;}
 /* HOME / SEARCH BAR */
 #homeSearchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;}
 #homeSearchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
@@ -29,7 +29,6 @@ body.dark .item{background:#1f1f1f;}
 .preview{font-size:12px;opacity:.8;}
 .genre{font-size:11px;opacity:.6;}
 .highlight{background:yellow;color:#000;}
-/* EMPTY */
 .empty{opacity:.6;text-align:center;margin-top:20px;}
 /* OVERLAY + SHEET */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:998;}
@@ -42,6 +41,10 @@ body.dark .sheet{background:#1f1f1f;color:#eee;}
 /* FLOATING NAV */
 .floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
 .floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
+.overlay-menu{position:fixed;top:0;right:0;width:0;height:100%;background:#fff;overflow-x:hidden;transition:0.3s;z-index:1000;padding:20px;}
+body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
+.overlay-menu.show{width:250px;}
+.overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
 </style>
 </head>
 <body>
@@ -56,7 +59,7 @@ body.dark .sheet{background:#1f1f1f;color:#eee;}
 <!-- HOME -->
 <div id="page-home" class="container" style="display:block">
   <div id="homeSearchBar">
-    <input id="homeInput" placeholder="Cari judul / genre / kata kunci...">
+    <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="doHomeSearch()">
     <button onclick="doHomeSearch()">Search</button>
   </div>
   <div id="homeResults" class="grid"></div>
@@ -83,6 +86,7 @@ body.dark .sheet{background:#1f1f1f;color:#eee;}
   <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
 </div>
 
+<!-- OVERLAY + SHEET -->
 <div class="overlay" onclick="closeSheet()"></div>
 
 <div class="sheet" id="sheet">
@@ -98,6 +102,17 @@ body.dark .sheet{background:#1f1f1f;color:#eee;}
   <button onclick="showTab('home')">🏠</button>
   <button onclick="showTab('search')">🔍</button>
   <button onclick="showTab('fav')">❤️</button>
+  <button onclick="toggleOverlayMenu()">☰</button>
+</div>
+
+<!-- OVERLAY MENU -->
+<div class="overlay-menu" id="overlayMenu">
+  <button onclick="toggleDark()">Dark Mode 🌙</button>
+  <button onclick="showTab('home')">Home 🏠</button>
+  <button onclick="showTab('search')">Search 🔍</button>
+  <button onclick="showTab('fav')">Favorites ❤️</button>
+  <button onclick="showTab('about')">About ℹ️</button>
+  <button onclick="toggleOverlayMenu()">Close ✖️</button>
 </div>
 
 <script>
@@ -120,7 +135,12 @@ function escapeRegex(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
 function highlight(text,key){if(!key) return text;const re=new RegExp(escapeRegex(key),'gi');return text.replace(re,m=>' <span class="highlight">'+m+'</span> ');}
 
 // HOME SEARCH
-function doHomeSearch(){const key=document.getElementById("homeInput").value.toLowerCase();results.innerHTML="";searchVN(key);}
+function doHomeSearch(){
+  const key=document.getElementById("homeInput").value.toLowerCase();
+  showTab('search');
+  q.value=document.getElementById("homeInput").value;
+  searchVN(key);
+}
 
 // SEARCH
 function searchVN(keyInput){
@@ -193,7 +213,12 @@ function showTab(t){
   document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
   document.getElementById("page-about").style.display=t==="about"?"block":"none";
   if(t==="fav") renderFav();
+  closeOverlayMenu();
 }
+
+// OVERLAY MENU
+function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
+function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
 
 // SPLASH
 setTimeout(()=>document.getElementById("splash").remove(),1500);
