@@ -4,17 +4,22 @@
 <meta charset="UTF-8">
 <title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#4285f4">
-<link rel="manifest" href="manifest.json">
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 <style>
-/* --- RESET & GLOBAL --- */
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
 body.dark{background:#121212;color:#eee;}
 #splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;z-index:999;}
 .header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;position:relative;}
 .toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;user-select:none;}
+#homeSearchBar, #searchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;position:relative;}
+#homeSearchBar input, #searchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
+#homeSearchBar button, #searchBar button{padding:12px 16px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
+body.dark #homeSearchBar input,body.dark #searchBar input{background:#1f1f1f;color:#eee;border-color:#444;}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;z-index:998;max-height:180px;overflow-y:auto;border-radius:8px;}
+body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;color:#eee;}
+.suggestion-item{padding:8px;cursor:pointer;border-bottom:1px solid #ddd;}
+body.dark .suggestion-item{border-color:#333;}
+.suggestion-item:hover{background:#4285f4;color:#fff;}
 .container{padding:15px;padding-bottom:80px;display:none;transition:opacity 0.3s;}
 .container.show{display:block;opacity:1;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
@@ -26,6 +31,7 @@ body.dark .item{background:#1f1f1f;}
 .item-title{font-weight:bold;font-size:14px;}
 .preview{font-size:12px;opacity:.8;}
 .genre{font-size:11px;opacity:.6;}
+.highlight{background:yellow;color:#000;}
 .empty{opacity:.6;text-align:center;margin-top:20px;}
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:998;}
 .overlay.show{display:block;}
@@ -42,15 +48,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 .overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
 .toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#ffcc33;color:#000;padding:12px 20px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.2);opacity:0;transition:opacity 0.5s;z-index:1001;}
 .toast.show{opacity:1;}
-#homeSearchBar,#searchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;position:relative;}
-#homeSearchBar input,#searchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
-#homeSearchBar button,#searchBar button{padding:12px 16px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
-body.dark #homeSearchBar input,body.dark #searchBar input{background:#1f1f1f;color:#eee;border-color:#444;}
-.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;z-index:998;max-height:180px;overflow-y:auto;border-radius:8px;}
-body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;color:#eee;}
-.suggestion-item{padding:8px;cursor:pointer;border-bottom:1px solid #ddd;}
-body.dark .suggestion-item{border-color:#333;}
-.suggestion-item:hover{background:#4285f4;color:#fff;}
 </style>
 </head>
 <body>
@@ -62,7 +59,6 @@ body.dark .suggestion-item{border-color:#333;}
   <div class="toggle-dark" onclick="toggleDark()">🌙</div>
 </div>
 
-<!-- HOME -->
 <div id="page-home" class="container show">
   <div id="homeSearchBar">
     <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="showSuggestions(this,homeSuggestions)">
@@ -73,7 +69,6 @@ body.dark .suggestion-item{border-color:#333;}
   <div id="emptyHome" class="empty">Belum ada rekomendasi</div>
 </div>
 
-<!-- SEARCH -->
 <div id="page-search" class="container">
   <div id="searchBar">
     <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="lastKey=this.value;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();">
@@ -83,20 +78,18 @@ body.dark .suggestion-item{border-color:#333;}
   <div id="empty" class="empty">Tidak ada hasil</div>
 </div>
 
-<!-- FAVORITES -->
 <div id="page-fav" class="container">
   <div id="favResults" class="grid"></div>
   <div id="emptyFav" class="empty">Belum ada VN favorit</div>
 </div>
 
-<!-- ABOUT -->
 <div id="page-about" class="container">
   <h3>Tentang Aplikasi</h3>
   <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
 </div>
 
-<!-- SHEET -->
 <div class="overlay" onclick="closeSheet()"></div>
+
 <div class="sheet" id="sheet">
   <h3 id="sheetTitle"></h3>
   <div id="sheetGenre" class="genre"></div>
@@ -105,7 +98,6 @@ body.dark .suggestion-item{border-color:#333;}
   <iframe id="sheetFrame"></iframe>
 </div>
 
-<!-- NAVIGATION -->
 <div class="floating-nav">
   <button onclick="showTab('home')">🏠</button>
   <button onclick="showTab('search')">🔍</button>
@@ -178,11 +170,13 @@ function fetchFeed(){
 }
 fetchFeed();
 
-// Check new VN
+// Push notification & toast
+if("Notification" in window && Notification.permission!=="granted") Notification.requestPermission();
+function showPushNotification(title,body){if(Notification.permission==="granted") new Notification(title,{body,icon:"https://angkringanvisualnovel.blogspot.com/favicon.ico"});}
 function checkNewVN(newPosts){
   const newLinks=newPosts.map(p=>p.link.find(l=>l.rel==="alternate").href);
   const diff=newLinks.filter(l=>!lastVNLinks.includes(l));
-  if(diff.length>0) showToast(`${diff.length} VN Baru Tersedia!`);
+  if(diff.length>0){showToast(`${diff.length} VN Baru Tersedia!`);showPushNotification("Angkringan VN",`${diff.length} VN Baru Tersedia!`);}
   lastVNLinks=newLinks;
   localStorage.setItem("vnLinks",JSON.stringify(lastVNLinks));
 }
@@ -237,7 +231,6 @@ function loadMoreResults(){
   searchOffset = posts.length;
   if(count === 0 && lastKey) empty.style.display="block";
 }
-
 window.addEventListener('scroll', () => {
   if((window.innerHeight + window.scrollY) >= document.body.offsetHeight - 150){
     if(searchOffset < posts.length) loadMoreResults();
@@ -263,17 +256,17 @@ favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").hr
 <div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;}});}
 function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);if(match)thumb=match[1];if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');return thumb||"https://via.placeholder.com/400x250";}
 
-// Handle Android back button
-window.addEventListener('popstate', function(event){
+// Handle back button Android
+window.addEventListener('popstate', function(event) {
   if(sheet.classList.contains('show')){
-    closeSheet();
-    history.pushState(null,null,location.href);
+    closeSheet(); // Tutup sheet dulu
+    history.pushState(null, null, location.href);
   }
 });
-history.pushState(null,null,location.href);
+history.pushState(null, null, location.href);
+
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
-
 </body>
 </html>
