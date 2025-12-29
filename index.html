@@ -41,9 +41,22 @@ body.dark .sheet{background:#1f1f1f;color:#eee;}
 /* FLOATING NAV */
 .floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
 .floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
-.overlay-menu{position:fixed;top:0;right:0;width:0;height:100%;background:#fff;overflow-x:hidden;transition:0.3s;z-index:1000;padding:20px;}
+/* OVERLAY MENU */
+.overlay-menu{
+  position:fixed;
+  top:0;
+  right:0;
+  width:250px;
+  height:100%;
+  background:#fff;
+  transform:translateX(100%);
+  transition:transform 0.3s ease;
+  z-index:1000;
+  padding:20px;
+  overflow-y:auto;
+}
 body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
-.overlay-menu.show{width:250px;}
+.overlay-menu.show{transform:translateX(0);}
 .overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
 </style>
 </head>
@@ -119,111 +132,67 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
 
-// Load Feed
 function loadFeed(d){posts=d.feed.entry||[];loadTags();renderHome();document.getElementById("splash").remove();}
-
-// Load Tags
 function loadTags(){const set=new Set();posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));tagFilter.innerHTML='<option value="">Semua Genre</option>';[...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);}
-
-// Thumbnail
 function getThumb(p){return p.media$thumbnail?.url||p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1]||"https://via.placeholder.com/150";}
-
-// Escape regex
 function escapeRegex(s){return s.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');}
-
-// Highlight
 function highlight(text,key){if(!key) return text;const re=new RegExp(escapeRegex(key),'gi');return text.replace(re,m=>' <span class="highlight">'+m+'</span> ');}
-
-// HOME SEARCH
-function doHomeSearch(){
-  const key=document.getElementById("homeInput").value.toLowerCase();
-  showTab('search');
-  q.value=document.getElementById("homeInput").value;
-  searchVN(key);
-}
-
-// SEARCH
-function searchVN(keyInput){
-  const key=keyInput||q.value.toLowerCase();const tag=tagFilter.value.toLowerCase();results.innerHTML="";let found=0;
-  posts.forEach(p=>{
-    const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
-    const text=(title+sum+cats.join(" ")).toLowerCase();
-    if((!key||text.includes(key)) && (!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
-      found++;
-      const link=p.link.find(l=>l.rel==="alternate").href;
-      results.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
-      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div>
-      <div class="item-title">${highlight(title,key)}</div>
-      <div class="preview">${highlight(sum.slice(0,90),key)}...</div>
-      <div class="genre">${cats.join(", ")}</div>
-      </div></div>`;
-    }
-  });
-  empty.style.display=found?"none":"block";
-}
-
-// RENDER HOME TOP 10
-function renderHome(){const container=homeResults;container.innerHTML="";let top=posts.slice(0,10);
-  if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
-  top.forEach(p=>{
-    const t=p.title.$t, s=p.summary?.$t||"", c=(p.category||[]).map(x=>x.term), l=p.link.find(l=>l.rel==="alternate").href;
-    container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+function doHomeSearch(){const key=document.getElementById("homeInput").value.toLowerCase();showTab('search');q.value=document.getElementById("homeInput").value;searchVN(key);}
+function searchVN(keyInput){const key=keyInput||q.value.toLowerCase();const tag=tagFilter.value.toLowerCase();results.innerHTML="";let found=0;
+posts.forEach(p=>{
+  const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
+  const text=(title+sum+cats.join(" ")).toLowerCase();
+  if((!key||text.includes(key)) && (!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
+    found++;
+    const link=p.link.find(l=>l.rel==="alternate").href;
+    results.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
     <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
     <div>
-    <div class="item-title">${t}</div>
-    <div class="preview">${s.slice(0,90)}...</div>
-    <div class="genre">${c.join(", ")}</div>
+    <div class="item-title">${highlight(title,key)}</div>
+    <div class="preview">${highlight(sum.slice(0,90),key)}...</div>
+    <div class="genre">${cats.join(", ")}</div>
     </div></div>`;
-  });
-}
-
-// FAVORITES
-function renderFav(){const container=favResults;container.innerHTML="";
-  if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
-  favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);
-    if(p){container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
-      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div>
-      <div class="item-title">${p.title.$t}</div>
-      <div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div>
-      <div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div>
-      </div></div>`;}
-  });
-}
-
-// OPEN / CLOSE SHEET
+  }
+});
+empty.style.display=found?"none":"block";}
+function renderHome(){const container=homeResults;container.innerHTML="";let top=posts.slice(0,10);
+if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
+top.forEach(p=>{const t=p.title.$t, s=p.summary?.$t||"", c=(p.category||[]).map(x=>x.term), l=p.link.find(l=>l.rel==="alternate").href;
+container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+<div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+<div>
+<div class="item-title">${t}</div>
+<div class="preview">${s.slice(0,90)}...</div>
+<div class="genre">${c.join(", ")}</div>
+</div></div>`;});}
+function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
+favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
+<div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+<div>
+<div class="item-title">${p.title.$t}</div>
+<div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div>
+<div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div>
+</div></div>`;}});}
 function openSheet(t,s,c,l){currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
-  sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
-  sheetFrame.src=l;updateFavIcon();
-  sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");}
+sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
+sheetFrame.src=l;updateFavIcon();sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");}
 function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
-
-// FAVORITE TOGGLE
 function toggleFav(){if(favs.includes(currentLink)) favs=favs.filter(x=>x!==currentLink);else favs.push(currentLink);localStorage.setItem("favs",JSON.stringify(favs));updateFavIcon();}
 function updateFavIcon(){document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";}
-
-// DARK MODE
 function toggleDark(){document.body.classList.toggle("dark");}
-
-// SWITCH TAB
-function showTab(t){
-  document.getElementById("page-home").style.display=t==="home"?"block":"none";
-  document.getElementById("page-search").style.display=t==="search"?"block":"none";
-  document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
-  document.getElementById("page-about").style.display=t==="about"?"block":"none";
-  if(t==="fav") renderFav();
-  closeOverlayMenu();
-}
-
-// OVERLAY MENU
+function showTab(t){document.getElementById("page-home").style.display=t==="home"?"block":"none";
+document.getElementById("page-search").style.display=t==="search"?"block":"none";
+document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
+document.getElementById("page-about").style.display=t==="about"?"block":"none";
+if(t==="fav") renderFav();closeOverlayMenu();}
 function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
 function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
 
-// SPLASH
+/* SPLASH */
 setTimeout(()=>document.getElementById("splash").remove(),1500);
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
+
 </body>
 </html>
