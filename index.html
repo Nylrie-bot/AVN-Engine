@@ -10,10 +10,14 @@
 body{
   margin:0;
   font-family:system-ui,sans-serif;
-  background:#f5f5f5;
+  background:#f4f4f4;
+  color:#222;
 }
+
+/* SPLASH */
 #splash{
-  position:fixed; inset:0;
+  position:fixed;
+  inset:0;
   background:#ffcc33;
   display:flex;
   align-items:center;
@@ -22,31 +26,83 @@ body{
   font-weight:bold;
   z-index:999;
 }
-.nav{
-  padding:12px;
+
+/* HEADER */
+.header{
   background:#ffcc33;
+  padding:14px;
   text-align:center;
   font-weight:bold;
+  font-size:18px;
 }
+
+/* CONTENT */
 .container{
   padding:15px;
+  padding-bottom:40px;
 }
-input,select{
+
+/* INPUT */
+input, select{
   width:100%;
   padding:12px;
   margin-bottom:10px;
-  border-radius:10px;
+  border-radius:12px;
   border:1px solid #ccc;
+  font-size:14px;
 }
+
+/* RESULT CARD */
 .item{
+  display:flex;
+  gap:12px;
   background:#fff;
   padding:12px;
-  border-radius:14px;
+  border-radius:16px;
   margin-bottom:12px;
   box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
-.item-title{font-weight:bold}
-.preview{font-size:13px;opacity:.8}
+
+.thumb{
+  width:70px;
+  height:95px;
+  border-radius:10px;
+  background-size:cover;
+  background-position:center;
+  flex-shrink:0;
+}
+
+.item-title{
+  font-weight:bold;
+  margin-bottom:4px;
+}
+
+.preview{
+  font-size:13px;
+  opacity:.8;
+  margin-bottom:6px;
+}
+
+.genre{
+  font-size:12px;
+  opacity:.6;
+}
+
+.open{
+  display:inline-block;
+  margin-top:6px;
+  font-size:13px;
+  color:#e6a700;
+  text-decoration:none;
+  font-weight:bold;
+}
+
+/* EMPTY */
+#empty{
+  text-align:center;
+  opacity:.6;
+  margin-top:30px;
+}
 </style>
 </head>
 
@@ -54,14 +110,17 @@ input,select{
 
 <div id="splash">VN Search</div>
 
-<div class="nav">Visual Novel</div>
+<div class="header">Visual Novel Search</div>
 
 <div class="container">
-  <input id="q" placeholder="Cari judul / kata kunci..." oninput="searchVN()">
+  <input id="q" placeholder="Cari judul, genre, atau kata kunci..." oninput="searchVN()">
+
   <select id="tagFilter" onchange="searchVN()">
     <option value="">Semua Genre</option>
   </select>
+
   <div id="results"></div>
+  <div id="empty" style="display:none">Tidak ada hasil ditemukan</div>
 </div>
 
 <script>
@@ -83,31 +142,48 @@ function loadTags(){
   });
 }
 
+function getThumb(p){
+  return p.media$thumbnail?.url ||
+    p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1] ||
+    "https://via.placeholder.com/150";
+}
+
 function searchVN(){
-  const key = document.getElementById("q").value.toLowerCase();
-  const tag = document.getElementById("tagFilter").value;
-  const res = document.getElementById("results");
+  const key = q.value.toLowerCase();
+  const tag = tagFilter.value.toLowerCase();
+  const res = results;
+  const empty = document.getElementById("empty");
   res.innerHTML = "";
+  let found = 0;
 
   posts.forEach(p => {
     const title = p.title.$t;
     const sum = p.summary?.$t || "";
     const cats = (p.category||[]).map(x=>x.term);
+    const text = (title + sum + cats.join(" ")).toLowerCase();
 
     if(
-      (!key || (title+sum).toLowerCase().includes(key)) &&
-      (!tag || cats.includes(tag))
+      (!key || text.includes(key)) &&
+      (!tag || cats.map(c=>c.toLowerCase()).includes(tag))
     ){
+      found++;
       const link = p.link.find(l=>l.rel==="alternate").href;
+
       res.innerHTML += `
         <div class="item">
-          <div class="item-title">${title}</div>
-          <div class="preview">${sum.slice(0,100)}...</div>
-          <a href="${link}" target="_blank">Buka</a>
+          <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+          <div>
+            <div class="item-title">${title}</div>
+            <div class="preview">${sum.slice(0,110)}...</div>
+            <div class="genre">${cats.join(", ")}</div>
+            <a class="open" href="${link}" target="_blank">Buka VN →</a>
+          </div>
         </div>
       `;
     }
   });
+
+  empty.style.display = found ? "none" : "block";
 }
 </script>
 
