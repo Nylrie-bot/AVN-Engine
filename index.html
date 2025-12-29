@@ -2,29 +2,24 @@
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>VN Search Pro</title>
+<title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
 body.dark{background:#121212;color:#eee;}
-/* SPLASH */
 #splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;z-index:999;}
-/* HEADER */
 .header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;position:relative;}
 .toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;}
-/* HOME / SEARCH BAR */
 #homeSearchBar, #searchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;position:relative;}
 #homeSearchBar input, #searchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
 #homeSearchBar button, #searchBar button{padding:12px 16px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
 body.dark #homeSearchBar input,body.dark #searchBar input{background:#1f1f1f;color:#eee;border-color:#444;}
-/* AUTOCOMPLETE */
 .autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;z-index:998;max-height:180px;overflow-y:auto;border-radius:8px;}
 body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;color:#eee;}
 .suggestion-item{padding:8px;cursor:pointer;border-bottom:1px solid #ddd;}
 body.dark .suggestion-item{border-color:#333;}
 .suggestion-item:hover{background:#4285f4;color:#fff;}
-/* CONTAINER */
 .container{padding:15px;padding-bottom:80px;display:none;}
 .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
 .item{display:flex;flex-direction:column;gap:8px;background:#f1f3f4;padding:8px;border-radius:12px;cursor:pointer;transition:transform 0.2s,box-shadow 0.2s;}
@@ -36,7 +31,6 @@ body.dark .item{background:#1f1f1f;}
 .genre{font-size:11px;opacity:.6;}
 .highlight{background:yellow;color:#000;}
 .empty{opacity:.6;text-align:center;margin-top:20px;}
-/* OVERLAY + SHEET */
 .overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:998;}
 .overlay.show{display:block;}
 .sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-radius:20px 20px 0 0;padding:10px;transition:.3s;max-height:90%;overflow:auto;z-index:999;}
@@ -44,23 +38,9 @@ body.dark .sheet{background:#1f1f1f;color:#eee;}
 .sheet.show{bottom:0;}
 .sheet iframe{width:100%;height:70vh;border:none;border-radius:12px;}
 .fav{font-size:20px;float:right;cursor:pointer;user-select:none;}
-/* FLOATING NAV */
 .floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
 .floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
-/* OVERLAY MENU */
-.overlay-menu{
-  position:fixed;
-  top:0;
-  right:0;
-  width:250px;
-  height:100%;
-  background:#fff;
-  transform:translateX(100%);
-  transition:transform 0.3s ease;
-  z-index:1000;
-  padding:20px;
-  overflow-y:auto;
-}
+.overlay-menu{position:fixed;top:0;right:0;width:250px;height:100%;background:#fff;transform:translateX(100%);transition:transform 0.3s ease;z-index:1000;padding:20px;overflow-y:auto;}
 body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 .overlay-menu.show{transform:translateX(0);}
 .overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
@@ -68,10 +48,10 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
 </head>
 <body>
 
-<div id="splash">VN Search Pro</div>
+<div id="splash">Angkringan Visual Novel</div>
 
 <div class="header">
-  VN Search
+  Angkringan Visual Novel
   <div class="toggle-dark" onclick="toggleDark()">🌙</div>
 </div>
 
@@ -110,7 +90,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
 </div>
 
-<!-- OVERLAY + SHEET -->
 <div class="overlay" onclick="closeSheet()"></div>
 
 <div class="sheet" id="sheet">
@@ -121,7 +100,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <iframe id="sheetFrame"></iframe>
 </div>
 
-<!-- FLOATING NAV -->
 <div class="floating-nav">
   <button onclick="showTab('home')">🏠</button>
   <button onclick="showTab('search')">🔍</button>
@@ -129,7 +107,6 @@ body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
   <button onclick="toggleOverlayMenu()">☰</button>
 </div>
 
-<!-- OVERLAY MENU -->
 <div class="overlay-menu" id="overlayMenu">
   <button onclick="showTab('home')">Home 🏠</button>
   <button onclick="showTab('search')">Search 🔍</button>
@@ -143,12 +120,9 @@ let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
 let suggestions=[], searchOffset=0, searchLimit=20, lastKey="";
 
-// -------------------- DATA FEED --------------------
 function loadFeed(d){
     posts=d.feed.entry||[];
-    loadTags();
-    buildSuggestions();
-    renderHome();
+    loadTags(); buildSuggestions(); renderHome();
     document.getElementById("splash").remove();
 }
 function loadTags(){
@@ -157,43 +131,35 @@ function loadTags(){
     tagFilter.innerHTML='<option value="">Semua Genre</option>';
     [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
 }
-
-// -------------------- THUMBNAIL --------------------
 function getThumb(p){
     let thumb = p.media$thumbnail?.url;
     const match = p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
     if(match) thumb = match[1];
-    if(thumb && thumb.includes('s72-c')) thumb = thumb.replace('s72-c','s400-c'); // upgrade resolusi
+    if(thumb && thumb.includes('s72-c')) thumb = thumb.replace('s72-c','s400-c');
     return thumb || "https://via.placeholder.com/400x250";
 }
-
-// -------------------- AUTOCOMPLETE --------------------
 function buildSuggestions(){suggestions=posts.map(p=>p.title.$t);}
 function showSuggestions(inputEl,listEl){
-    const key=inputEl.value.toLowerCase();
-    listEl.innerHTML="";
+    const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
     if(!key) return;
     suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
-        const div=document.createElement("div");
-        div.textContent=t;div.className="suggestion-item";
+        const div=document.createElement("div"); div.textContent=t; div.className="suggestion-item";
         div.onclick=()=>{inputEl.value=t;searchVN(q.value);listEl.innerHTML="";};
         listEl.appendChild(div);
     });
 }
-
-// -------------------- SEARCH --------------------
 function doHomeSearch(){const key=homeInput.value;showTab('search');q.value=key;searchVN(key);}
 function searchVN(keyInput){
-    if(posts.length===0) return; // pastikan data sudah dimuat
-    const key = (keyInput || q.value).toLowerCase();
-    const tag = tagFilter.value.toLowerCase();
-    results.innerHTML="";empty.style.display="none";searchOffset=0;lastKey=key;
+    if(posts.length===0) return;
+    const key=(keyInput||q.value).toLowerCase();
+    const tag=tagFilter.value.toLowerCase();
+    results.innerHTML=""; empty.style.display="none"; searchOffset=0; lastKey=key;
     loadMoreResults();
 }
 function loadMoreResults(){
     const tag=tagFilter.value.toLowerCase();let count=0;
     for(let i=searchOffset;i<posts.length;i++){
-        const p=posts[i];const title=p.title.$t;const sum=p.summary?.$t||"";const cats=(p.category||[]).map(x=>x.term);
+        const p=posts[i]; const title=p.title.$t; const sum=p.summary?.$t||""; const cats=(p.category||[]).map(x=>x.term);
         const text=(title+sum+cats.join(" ")).toLowerCase();
         if((!lastKey||text.includes(lastKey))&&(!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
             results.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${p.link.find(l=>l.rel==="alternate").href}")'>
@@ -206,8 +172,6 @@ function loadMoreResults(){
     if(count===0) empty.style.display="block";
 }
 results.addEventListener("scroll",()=>{if(results.scrollTop+results.clientHeight>=results.scrollHeight-50) loadMoreResults();});
-
-// -------------------- HOME --------------------
 function renderHome(){
     const container=homeResults;container.innerHTML="";
     let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
@@ -218,8 +182,6 @@ function renderHome(){
         <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
     });
 }
-
-// -------------------- FAVORITES --------------------
 function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
 favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
 <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
@@ -241,9 +203,15 @@ function closeOverlayMenu(){document.getElementById("overlayMenu").classList.rem
 
 /* SPLASH */
 setTimeout(()=>document.getElementById("splash").remove(),1500);
-</script>
 
-<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
+// -------------------- FETCH FEED TERBARU --------------------
+function fetchFeed(){
+    const script=document.createElement("script");
+    script.src=`https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed&_=${Date.now()}`;
+    document.body.appendChild(script);
+}
+fetchFeed();
+</script>
 
 </body>
 </html>
