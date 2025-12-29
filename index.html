@@ -14,13 +14,18 @@
   --muted: #666;
 }
 
-* {
-  box-sizing: border-box;
+body.dark {
+  --bg: #121212;
+  --card: #1e1e1e;
+  --text: #eee;
+  --muted: #aaa;
 }
+
+* { box-sizing: border-box; }
 
 body {
   margin: 0;
-  font-family: system-ui, -apple-system, sans-serif;
+  font-family: system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -29,18 +34,24 @@ body {
 header {
   background: var(--primary);
   color: white;
-  padding: 18px;
-  font-size: 20px;
+  padding: 16px;
+  font-size: 18px;
   font-weight: 600;
   text-align: center;
+  position: relative;
+}
+
+.toggle {
+  position: absolute;
+  right: 14px;
+  top: 14px;
+  cursor: pointer;
+  font-size: 14px;
 }
 
 /* Layout */
-.container {
-  padding: 16px;
-}
+.container { padding: 16px; }
 
-/* Search */
 .search-box {
   background: var(--card);
   padding: 14px;
@@ -56,50 +67,81 @@ input {
   border-radius: 10px;
   border: 2px solid var(--primary);
   outline: none;
+  background: transparent;
+  color: var(--text);
 }
 
-/* Status */
-#status {
-  margin: 14px 4px;
-  font-size: 14px;
-  color: var(--muted);
+/* Loading */
+#loader {
+  display: none;
+  text-align: center;
+  margin: 20px 0;
 }
 
-/* Card result */
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 4px solid var(--muted);
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: auto;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+/* Results */
 .item {
   background: var(--card);
   padding: 14px;
   border-radius: 14px;
   margin-bottom: 14px;
   box-shadow: 0 4px 10px rgba(0,0,0,.08);
-  transition: transform .15s ease, box-shadow .15s ease;
+  cursor: pointer;
 }
 
-.item:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 18px rgba(0,0,0,.12);
-}
-
-.item a {
-  color: var(--text);
-  font-size: 16px;
+.item-title {
   font-weight: 600;
-  text-decoration: none;
-  display: block;
   margin-bottom: 6px;
 }
 
 .preview {
   font-size: 14px;
   color: var(--muted);
-  line-height: 1.4;
 }
 
-/* Highlight */
 mark {
   background: #fff1b8;
   padding: 0 3px;
   border-radius: 4px;
+}
+
+/* Bottom sheet */
+#sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: -100%;
+  background: var(--card);
+  border-radius: 18px 18px 0 0;
+  padding: 18px;
+  box-shadow: 0 -8px 20px rgba(0,0,0,.3);
+  transition: bottom .3s ease;
+  max-height: 80%;
+  overflow-y: auto;
+}
+
+#sheet.show { bottom: 0; }
+
+#sheet h3 { margin-top: 0; }
+
+.close {
+  text-align: right;
+  font-size: 14px;
+  cursor: pointer;
+  color: var(--muted);
 }
 </style>
 </head>
@@ -108,72 +150,80 @@ mark {
 
 <header>
   Angkringan VN Search
+  <div class="toggle" onclick="toggleDark()">🌙</div>
 </header>
 
 <div class="container">
-
   <div class="search-box">
     <input id="q" placeholder="Cari judul atau kata kunci VN..." oninput="searchVN()">
   </div>
 
-  <div id="status">Memuat data...</div>
-  <div id="results"></div>
+  <div id="loader">
+    <div class="spinner"></div>
+  </div>
 
+  <div id="results"></div>
+</div>
+
+<!-- Bottom Sheet -->
+<div id="sheet">
+  <div class="close" onclick="closeSheet()">Tutup ✕</div>
+  <h3 id="sheetTitle"></h3>
+  <p id="sheetContent"></p>
+  <a id="sheetLink" target="_blank">Buka halaman VN</a>
 </div>
 
 <script>
 let posts = [];
 
+function toggleDark() {
+  document.body.classList.toggle("dark");
+}
+
 function loadFeed(data) {
   posts = data.feed.entry || [];
-  document.getElementById("status").innerText =
-    "Data siap (" + posts.length + " post)";
+  document.getElementById("loader").style.display = "none";
 }
 
 function highlight(text, key) {
-  const reg = new RegExp(`(${key})`, "gi");
-  return text.replace(reg, "<mark>$1</mark>");
+  return text.replace(new RegExp(`(${key})`, "gi"), "<mark>$1</mark>");
 }
 
 function searchVN() {
-  const key = document.getElementById("q").value.toLowerCase();
-  const res = document.getElementById("results");
+  const key = q.value.toLowerCase();
+  const res = results;
   res.innerHTML = "";
 
   if (!key || posts.length === 0) return;
 
-  let found = 0;
-
   posts.forEach(p => {
     const title = p.title.$t;
     const summary = p.summary ? p.summary.$t : "";
-    const tLower = title.toLowerCase();
-    const sLower = summary.toLowerCase();
-
-    if (tLower.includes(key) || sLower.includes(key)) {
-      const link = p.link.find(l => l.rel === "alternate").href;
-
+    if (title.toLowerCase().includes(key) || summary.toLowerCase().includes(key)) {
       res.innerHTML += `
-        <div class="item">
-          <a href="${link}">
-            ${highlight(title, key)}
-          </a>
-          <div class="preview">
-            ${highlight(summary.substring(0, 120), key)}...
-          </div>
-        </div>
-      `;
-      found++;
+        <div class="item" onclick="openSheet('${encodeURIComponent(title)}','${encodeURIComponent(summary)}','${p.link.find(l=>l.rel==='alternate').href}')">
+          <div class="item-title">${highlight(title, key)}</div>
+          <div class="preview">${highlight(summary.slice(0,100), key)}...</div>
+        </div>`;
     }
   });
-
-  document.getElementById("status").innerText =
-    found ? `Ditemukan ${found} hasil` : "Tidak ada hasil";
 }
+
+function openSheet(title, content, link) {
+  sheetTitle.innerText = decodeURIComponent(title);
+  sheetContent.innerText = decodeURIComponent(content);
+  sheetLink.href = link;
+  sheet.classList.add("show");
+}
+
+function closeSheet() {
+  sheet.classList.remove("show");
+}
+
+document.getElementById("loader").style.display = "block";
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&max-results=150&callback=loadFeed"></script>
 
 </body>
 </html>
-  
