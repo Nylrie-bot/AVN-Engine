@@ -5,22 +5,15 @@
 <title>VN Search</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
-<!-- ICON -->
-<link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
-
 <style>
 *{box-sizing:border-box}
 body{
   margin:0;
-  font-family:system-ui, sans-serif;
+  font-family:system-ui,sans-serif;
   background:#f5f5f5;
 }
-body.dark{background:#121212;color:#eee}
-
-/* SPLASH */
 #splash{
-  position:fixed;
-  inset:0;
+  position:fixed; inset:0;
   background:#ffcc33;
   display:flex;
   align-items:center;
@@ -29,125 +22,31 @@ body.dark{background:#121212;color:#eee}
   font-weight:bold;
   z-index:999;
 }
-
-/* NAVBAR */
 .nav{
-  display:flex;
-  align-items:center;
   padding:12px;
   background:#ffcc33;
-}
-.nav .title{
-  flex:1;
   text-align:center;
   font-weight:bold;
 }
-
-/* CONTENT */
 .container{
   padding:15px;
-  padding-bottom:80px;
 }
-
-/* INPUT */
 input,select{
   width:100%;
   padding:12px;
   margin-bottom:10px;
-  border-radius:12px;
+  border-radius:10px;
   border:1px solid #ccc;
-  font-size:14px;
 }
-body.dark input,
-body.dark select{
-  background:#1f1f1f;
-  color:#eee;
-  border-color:#444;
-}
-
-/* CARD */
 .item{
-  display:flex;
-  gap:12px;
   background:#fff;
   padding:12px;
-  border-radius:16px;
+  border-radius:14px;
   margin-bottom:12px;
-  box-shadow:0 3px 8px rgba(0,0,0,.1);
-  cursor:pointer;
+  box-shadow:0 2px 6px rgba(0,0,0,.1);
 }
-body.dark .item{background:#1f1f1f}
-
-.thumb{
-  width:70px;
-  height:95px;
-  border-radius:12px;
-  background-size:cover;
-  background-position:center;
-}
-
-.item-title{
-  font-weight:bold;
-  margin-bottom:4px;
-}
-.preview{
-  font-size:13px;
-  opacity:.75;
-}
-
-/* BOTTOM SHEET */
-.overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.4);
-  display:none;
-}
-.overlay.show{display:block}
-
-.sheet{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:-100%;
-  background:#fff;
-  border-radius:20px 20px 0 0;
-  padding:20px;
-  transition:.3s;
-}
-body.dark .sheet{background:#1f1f1f}
-.sheet.show{bottom:0}
-
-.sheet a{
-  display:block;
-  margin-top:15px;
-  padding:12px;
-  background:#ffcc33;
-  text-align:center;
-  border-radius:12px;
-  color:#000;
-  text-decoration:none;
-  font-weight:bold;
-}
-
-/* BOTTOM NAV */
-.bottom-nav{
-  position:fixed;
-  left:0;
-  right:0;
-  bottom:0;
-  background:#fff;
-  display:flex;
-  border-top:1px solid #ddd;
-}
-body.dark .bottom-nav{background:#1f1f1f}
-
-.bottom-nav div{
-  flex:1;
-  text-align:center;
-  padding:10px;
-  font-size:12px;
-}
-.material-icons{display:block}
+.item-title{font-weight:bold}
+.preview{font-size:13px;opacity:.8}
 </style>
 </head>
 
@@ -155,12 +54,9 @@ body.dark .bottom-nav{background:#1f1f1f}
 
 <div id="splash">VN Search</div>
 
-<div class="nav">
-  <span class="material-icons" onclick="toggleDark()">dark_mode</span>
-  <div class="title">Visual Novel</div>
-</div>
+<div class="nav">Visual Novel</div>
 
-<div class="container" id="page-search">
+<div class="container">
   <input id="q" placeholder="Cari judul / kata kunci..." oninput="searchVN()">
   <select id="tagFilter" onchange="searchVN()">
     <option value="">Semua Genre</option>
@@ -168,108 +64,51 @@ body.dark .bottom-nav{background:#1f1f1f}
   <div id="results"></div>
 </div>
 
-<div class="container" id="page-about" style="display:none">
-  <h3>Tentang Aplikasi</h3>
-  <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
-</div>
-
-<div class="overlay" onclick="closeSheet()"></div>
-
-<div class="sheet" id="sheet">
-  <h3 id="sheetTitle"></h3>
-  <p id="sheetSum"></p>
-  <a id="sheetLink" target="_blank">Buka Halaman VN</a>
-</div>
-
-<div class="bottom-nav">
-  <div onclick="showPage('search')">
-    <span class="material-icons">search</span>Search
-  </div>
-  <div onclick="showPage('search')">
-    <span class="material-icons">category</span>Genre
-  </div>
-  <div onclick="showPage('about')">
-    <span class="material-icons">info</span>About
-  </div>
-</div>
-
 <script>
-let posts=[];
+let posts = [];
 
 function loadFeed(d){
-  posts=d.feed.entry||[];
+  posts = d.feed.entry || [];
   loadTags();
+  document.getElementById("splash").remove();
 }
 
 function loadTags(){
-  const set=new Set();
-  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
-  tagFilter.innerHTML='<option value="">Semua Genre</option>';
-  [...set].sort().forEach(t=>{
-    tagFilter.innerHTML+=`<option>${t}</option>`;
+  const set = new Set();
+  posts.forEach(p => (p.category||[]).forEach(c => set.add(c.term)));
+  const sel = document.getElementById("tagFilter");
+  sel.innerHTML = '<option value="">Semua Genre</option>';
+  [...set].sort().forEach(t => {
+    sel.innerHTML += `<option>${t}</option>`;
   });
-}
-
-function getThumb(p){
-  return p.media$thumbnail?.url ||
-    p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1] ||
-    "https://via.placeholder.com/150";
 }
 
 function searchVN(){
-  const k=q.value.toLowerCase();
-  const tag=tagFilter.value;
-  results.innerHTML="";
-  if(!k && !tag) return;
+  const key = document.getElementById("q").value.toLowerCase();
+  const tag = document.getElementById("tagFilter").value;
+  const res = document.getElementById("results");
+  res.innerHTML = "";
 
-  posts.forEach(p=>{
-    const t=p.title.$t;
-    const s=p.summary?.$t||"";
-    const c=(p.category||[]).map(x=>x.term);
+  posts.forEach(p => {
+    const title = p.title.$t;
+    const sum = p.summary?.$t || "";
+    const cats = (p.category||[]).map(x=>x.term);
 
-    if((!k||(t+s).toLowerCase().includes(k)) && (!tag||c.includes(tag))){
-      results.innerHTML+=`
-      <div class="item" onclick="openSheet(
-        ${JSON.stringify(t)},
-        ${JSON.stringify(s)},
-        '${p.link.find(l=>l.rel==="alternate").href}'
-      )">
-        <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-        <div>
-          <div class="item-title">${t}</div>
-          <div class="preview">${s.slice(0,100)}...</div>
+    if(
+      (!key || (title+sum).toLowerCase().includes(key)) &&
+      (!tag || cats.includes(tag))
+    ){
+      const link = p.link.find(l=>l.rel==="alternate").href;
+      res.innerHTML += `
+        <div class="item">
+          <div class="item-title">${title}</div>
+          <div class="preview">${sum.slice(0,100)}...</div>
+          <a href="${link}" target="_blank">Buka</a>
         </div>
-      </div>`;
+      `;
     }
   });
 }
-
-function openSheet(t,s,l){
-  sheetTitle.innerText=t;
-  sheetSum.innerText=s;
-  sheetLink.href=l;
-  sheet.classList.add("show");
-  document.querySelector(".overlay").classList.add("show");
-}
-
-function closeSheet(){
-  sheet.classList.remove("show");
-  document.querySelector(".overlay").classList.remove("show");
-}
-
-function toggleDark(){
-  document.body.classList.toggle("dark");
-}
-
-function showPage(p){
-  page-search.style.display=p==="search"?"block":"none";
-  page-about.style.display=p==="about"?"block":"none";
-}
-
-/* SPLASH */
-setTimeout(()=>{
-  document.getElementById("splash").remove();
-},1500);
 </script>
 
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
