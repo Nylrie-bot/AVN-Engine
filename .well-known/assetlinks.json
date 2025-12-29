@@ -1,8 +1,8 @@
 [{
-      "relation": ["delegate_permission/common.handle_all_urls"],
-      "target": {
-        "namespace": "android_app",
-        "package_name": "io.github.nylrie_bot.twa",
-        "sha256_cert_fingerprints": ["E5:BC:C0:FE:70:69:CE:FF:BC:5D:FA:FD:07:0A:AC:34:09:CB:52:42:40:65:24:3A:1F:DA:A5:8C:09:B2:28:0E"]
-      }
-    }]
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "io.github.nylrie_bot.twa",
+    "sha256_cert_fingerprints": ["E5:BC:C0:FE:70:69:CE:FF:BC:5D:FA:FD:07:0A:AC:34:09:CB:52:42:40:65:24:3A:1F:DA:A5:BC:09:B2:28:0E"]
+  }
+}]
