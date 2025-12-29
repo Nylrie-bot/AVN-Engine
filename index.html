@@ -86,10 +86,49 @@ body.dark .overlay-menu button{background:#333;color:#eee;}
 </div>
 
 <div id="page-about" class="container">
-  <h3>Tentang Aplikasi</h3>
-  <p style="margin-top:15px">AVN Engine adalah aplikasi pencari konten Visual Novel dari database Angkringan Visual Novel.</p>
-  <p style="margin-top:10px; font-size:12px; opacity:0.6">Version 1.0.0 (PWA)</p>
+  <div style="text-align: center; margin-bottom: 25px;">
+    <h2 style="color: #4285f4;">AVN Engine</h2>
+    <p style="font-size: 14px; opacity: 0.7;">Version 1.0.0 (PWA Edition)</p>
+  </div>
+
+  <section style="margin-bottom: 20px;">
+    <h4 style="border-left: 4px solid #4285f4; padding-left: 10px; margin-bottom: 10px;">Tentang Aplikasi</h4>
+    <p style="font-size: 14px; line-height: 1.6;">
+      AVN Engine adalah aplikasi pencari (Search Engine) khusus untuk konten Visual Novel. 
+      Aplikasi ini bekerja secara otomatis dengan mengambil data publik dari feed resmi 
+      <strong>Angkringan Visual Novel</strong> untuk memudahkan navigasi pengguna.
+    </p>
+  </section>
+
+  <section style="margin-bottom: 20px; background: rgba(66, 133, 244, 0.1); padding: 15px; border-radius: 12px;">
+    <h4 style="margin-bottom: 8px;">Kebijakan Privasi</h4>
+    <p style="font-size: 13px; opacity: 0.9;">
+      Aplikasi ini sangat menghargai privasi Anda:
+    </p>
+    <ul style="font-size: 13px; margin-left: 20px; margin-top: 5px; opacity: 0.9;">
+      <li>Aplikasi <strong>TIDAK</strong> mengumpulkan data pribadi pengguna.</li>
+      <li>Fitur 'Favorit' disimpan secara lokal di perangkat Anda (LocalStorage).</li>
+      <li>Aplikasi tidak menggunakan pelacak (trackers) atau iklan pihak ketiga.</li>
+    </ul>
+  </section>
+
+  <section style="margin-bottom: 20px;">
+    <h4 style="margin-bottom: 8px;">Disclaimer</h4>
+    <p style="font-size: 13px; opacity: 0.8; font-style: italic;">
+      Semua konten, gambar, dan link yang ditampilkan dalam aplikasi ini adalah milik 
+      sepenuhnya dari sumber asli (Angkringan Visual Novel). Aplikasi ini hanya berfungsi 
+      sebagai media antarmuka pencarian.
+    </p>
+  </section>
+
+  <div style="text-align: center; margin-top: 30px;">
+    <button onclick="window.open('https://nylrie-bot.github.io/AVN-Engine/', '_blank')" 
+            style="padding: 10px 20px; border-radius: 20px; border: 1px solid #4285f4; background: none; color: #4285f4; font-weight: bold; cursor: pointer;">
+      Check for Update
+    </button>
+  </div>
 </div>
+
 
 <div class="overlay" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
