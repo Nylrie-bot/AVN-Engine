@@ -158,7 +158,15 @@ function loadTags(){
     tagFilter.innerHTML='<option value="">Semua Genre</option>';
     [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
 }
-function getThumb(p){return p.media$thumbnail?.url||p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1]||"https://via.placeholder.com/150";}
+
+// -------------------- THUMBNAIL --------------------
+function getThumb(p){
+    let thumb = p.media$thumbnail?.url;
+    const match = p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
+    if(match) thumb = match[1];
+    if(thumb && thumb.includes('s72-c')) thumb = thumb.replace('s72-c','s400-c'); // upgrade resolusi
+    return thumb || "https://via.placeholder.com/400x250";
+}
 
 // -------------------- AUTOCOMPLETE --------------------
 function buildSuggestions(){suggestions=posts.map(p=>p.title.$t);}
