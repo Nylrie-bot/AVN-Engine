@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+ <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
@@ -140,4 +140,94 @@ input, select{
   <div id="sheetGenre" class="genre"></div>
   <p id="sheetSum"></p>
   <span class="fav" onclick="toggleFav()">❤️</span>
-  <a id="sheet
+  <a id="sheetLink" target="_blank">Buka VN</a>
+</div>
+
+<script>
+let posts=[], currentLink="";
+let favs = JSON.parse(localStorage.getItem("favs")||"[]");
+
+function loadFeed(d){
+  posts = d.feed.entry || [];
+  loadTags();
+  document.getElementById("splash").remove();
+}
+
+function loadTags(){
+  const set=new Set();
+  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
+  tagFilter.innerHTML='<option value="">Semua Genre</option>';
+  [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
+}
+
+function getThumb(p){
+  return p.media$thumbnail?.url ||
+    p.content?.$t.match(/img[^>]+src="([^"]+)"/)?.[1] ||
+    "https://via.placeholder.com/150";
+}
+
+function searchVN(){
+  const key=q.value.toLowerCase();
+  const tag=tagFilter.value.toLowerCase();
+  results.innerHTML="";
+  let found=0;
+
+  posts.forEach(p=>{
+    const title=p.title.$t;
+    const sum=p.summary?.$t||"";
+    const cats=(p.category||[]).map(x=>x.term);
+    const text=(title+sum+cats.join(" ")).toLowerCase();
+
+    if((!key||text.includes(key)) && (!tag||cats.map(c=>c.toLowerCase()).includes(tag))){
+      found++;
+      const link=p.link.find(l=>l.rel==="alternate").href;
+      results.innerHTML+=`
+        <div class="item" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)}, "${link}")'>
+          <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+          <div>
+            <div class="item-title">${title}</div>
+            <div class="preview">${sum.slice(0,90)}...</div>
+            <div class="genre">${cats.join(", ")}</div>
+          </div>
+        </div>`;
+    }
+  });
+
+  empty.style.display = found?"none":"block";
+}
+
+function openSheet(t,s,c,l){
+  sheetTitle.innerText=t;
+  sheetSum.innerText=s;
+  sheetGenre.innerText=c.join(", ");
+  sheetLink.href=l;
+  currentLink=l;
+  updateFavIcon();
+  sheet.classList.add("show");
+  document.querySelector(".overlay").classList.add("show");
+}
+
+function closeSheet(){
+  sheet.classList.remove("show");
+  document.querySelector(".overlay").classList.remove("show");
+}
+
+function toggleFav(){
+  if(favs.includes(currentLink))
+    favs=favs.filter(x=>x!==currentLink);
+  else
+    favs.push(currentLink);
+
+  localStorage.setItem("favs",JSON.stringify(favs));
+  updateFavIcon();
+}
+
+function updateFavIcon(){
+  document.querySelector(".fav").innerText = favs.includes(currentLink)?"❤️":"🤍";
+}
+</script>
+
+<script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
+
+</body>
+</html>
