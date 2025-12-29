@@ -4,305 +4,312 @@
 <meta charset="UTF-8">
 <title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<link rel="manifest" href="/manifest.json">
+<link rel="manifest" href="/AVN-Engine/manifest.json">
 <style>
-/* ==== CSS sama seperti versi terakhir ==== */
-*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
-body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
+/* ==== CSS Framework ==== */
+*{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,sans-serif;}
+body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;line-height:1.5;}
 body.dark{background:#121212;color:#eee;}
-#splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:bold;z-index:999;}
-.header{padding:14px;text-align:center;font-weight:bold;font-size:20px;display:flex;justify-content:center;align-items:center;gap:10px;position:relative;}
-.toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:10px;top:14px;user-select:none;}
-#homeSearchBar, #searchBar{margin:20px auto;width:90%;max-width:500px;display:flex;gap:10px;position:relative;}
-#homeSearchBar input, #searchBar input{flex:1;padding:12px 16px;border-radius:24px;border:1px solid #ccc;font-size:16px;transition:background 0.3s,color 0.3s;}
-#homeSearchBar button, #searchBar button{padding:12px 16px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
-body.dark #homeSearchBar input,body.dark #searchBar input{background:#1f1f1f;color:#eee;border-color:#444;}
-.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;z-index:998;max-height:180px;overflow-y:auto;border-radius:8px;}
-body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;color:#eee;}
-.suggestion-item{padding:8px;cursor:pointer;border-bottom:1px solid #ddd;}
-body.dark .suggestion-item{border-color:#333;}
+#splash{position:fixed;inset:0;background:#4285f4;color:#fff;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:bold;z-index:9999;}
+.header{padding:14px;text-align:center;font-weight:bold;font-size:18px;display:flex;justify-content:center;align-items:center;gap:10px;position:sticky;top:0;background:inherit;z-index:900;box-shadow:0 1px 3px rgba(0,0,0,0.1);}
+.toggle-dark{cursor:pointer;font-size:18px;position:absolute;right:15px;user-select:none;}
+#homeSearchBar, #searchBar{margin:20px auto;width:92%;max-width:500px;display:flex;gap:10px;position:relative;}
+#homeSearchBar input, #searchBar input{flex:1;padding:12px 18px;border-radius:24px;border:1px solid #ddd;font-size:16px;outline:none;}
+#homeSearchBar button, #searchBar button{padding:12px 20px;border:none;border-radius:24px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
+body.dark input{background:#1f1f1f;color:#eee;border-color:#333;}
+.autocomplete-list{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid #ddd;z-index:998;max-height:180px;overflow-y:auto;border-radius:12px;margin-top:5px;box-shadow:0 4px 12px rgba(0,0,0,0.1);}
+body.dark .autocomplete-list{background:#1f1f1f;border-color:#333;}
+.suggestion-item{padding:12px;cursor:pointer;border-bottom:1px solid #eee;}
 .suggestion-item:hover{background:#4285f4;color:#fff;}
-.container{padding:15px;padding-bottom:80px;display:none;transition:opacity 0.3s;}
-.container.show{display:block;opacity:1;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px;}
-.item{display:flex;flex-direction:column;gap:8px;background:#f1f3f4;padding:8px;border-radius:12px;cursor:pointer;transition:transform 0.3s,box-shadow 0.3s,opacity 0.3s;opacity:0;}
-.item.show{opacity:1;}
+.container{padding:15px;padding-bottom:100px;display:none;max-width:800px;margin:0 auto;}
+.container.show{display:block;}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:15px;}
+.item{display:flex;flex-direction:column;background:#f8f9fa;padding:10px;border-radius:15px;cursor:pointer;transition:0.3s;}
 body.dark .item{background:#1f1f1f;}
-.item:hover{transform:translateY(-3px);box-shadow:0 6px 12px rgba(0,0,0,.2);}
-.thumb{width:100%;height:180px;border-radius:10px;background-size:cover;background-position:center;}
-.item-title{font-weight:bold;font-size:14px;}
-.preview{font-size:12px;opacity:.8;}
-.genre{font-size:11px;opacity:.6;}
-.highlight{background:yellow;color:#000;}
-.empty{opacity:.6;text-align:center;margin-top:20px;}
-.overlay{position:fixed;inset:0;background:rgba(0,0,0,.4);display:none;z-index:998;}
+.item:active{transform:scale(0.95);}
+.thumb{width:100%;height:180px;border-radius:10px;background-size:cover;background-position:center;background-color:#ddd;}
+.item-title{font-weight:bold;font-size:14px;margin-top:8px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;}
+.preview{font-size:11px;opacity:.7;margin:4px 0;}
+.genre{font-size:10px;font-weight:bold;color:#4285f4;}
+.empty{opacity:.5;text-align:center;margin-top:50px;font-style:italic;}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:none;z-index:1000;}
 .overlay.show{display:block;}
-.sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-radius:20px 20px 0 0;padding:10px;transition:.3s;max-height:90%;overflow:auto;z-index:999;}
-body.dark .sheet{background:#1f1f1f;color:#eee;}
+.sheet{position:fixed;left:0;right:0;bottom:-100%;background:#fff;border-radius:24px 24px 0 0;padding:20px;transition:0.4s cubic-bezier(0.4, 0, 0.2, 1);max-height:90%;overflow-y:auto;z-index:1001;box-shadow:0 -5px 20px rgba(0,0,0,0.2);}
+body.dark .sheet{background:#181818;}
 .sheet.show{bottom:0;}
-.sheet iframe{width:100%;height:70vh;border:none;border-radius:12px;}
-.fav{font-size:20px;float:right;cursor:pointer;user-select:none;margin-left:10px;}
-.floating-nav{position:fixed;right:15px;bottom:15px;display:flex;flex-direction:column;gap:10px;z-index:999;}
-.floating-nav button{padding:12px;border:none;border-radius:50%;background:#4285f4;color:#fff;cursor:pointer;font-size:16px;box-shadow:0 2px 6px rgba(0,0,0,.2);}
-.overlay-menu{position:fixed;top:0;right:0;width:250px;height:100%;background:#fff;transform:translateX(100%);transition:transform 0.3s ease;z-index:1000;padding:20px;overflow-y:auto;}
-body.dark .overlay-menu{background:#1f1f1f;color:#eee;}
+.sheet iframe{width:100%;height:60vh;border:none;border-radius:15px;margin-top:15px;background:#fff;}
+.fav{font-size:24px;float:right;cursor:pointer;}
+.floating-nav{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:rgba(66,133,244,0.9);backdrop-filter:blur(10px);padding:10px 20px;border-radius:30px;display:flex;gap:20px;z-index:900;box-shadow:0 4px 15px rgba(0,0,0,0.2);}
+.floating-nav button{background:none;border:none;color:#fff;font-size:20px;cursor:pointer;padding:5px;}
+.overlay-menu{position:fixed;top:0;right:0;width:280px;height:100%;background:#fff;transform:translateX(100%);transition:0.3s;z-index:2000;padding:30px 20px;}
+body.dark .overlay-menu{background:#1f1f1f;}
 .overlay-menu.show{transform:translateX(0);}
-.overlay-menu button{display:block;margin:10px 0;padding:10px;width:100%;border:none;border-radius:8px;background:#4285f4;color:#fff;cursor:pointer;font-weight:bold;}
-.toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%);background:#ffcc33;color:#000;padding:12px 20px;border-radius:20px;box-shadow:0 2px 6px rgba(0,0,0,.2);opacity:0;transition:opacity 0.5s;z-index:1001;}
-.toast.show{opacity:1;}
+.overlay-menu button{display:block;margin-bottom:15px;padding:15px;width:100%;border:none;border-radius:12px;background:#f1f3f4;color:#202124;text-align:left;font-weight:bold;cursor:pointer;}
+body.dark .overlay-menu button{background:#333;color:#eee;}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:#323232;color:#fff;padding:12px 24px;border-radius:8px;font-size:14px;opacity:0;transition:0.3s;z-index:9999;pointer-events:none;}
+.toast.show{opacity:1;top:40px;}
+#tagFilter{margin:0 auto 20px; display:block; padding:8px; border-radius:8px; width:92%; max-width:500px;}
 </style>
 </head>
 <body>
 
-<div id="splash">Angkringan Visual Novel</div>
+<div id="splash">AVN Engine</div>
 
 <div class="header">
   Angkringan Visual Novel
-  <div class="toggle-dark" onclick="toggleDark()">🌙</div>
+  <div class="toggle-dark" onclick="toggleDark()">🌓</div>
 </div>
 
 <div id="page-home" class="container show">
   <div id="homeSearchBar">
-    <input id="homeInput" placeholder="Cari judul / genre / kata kunci..." oninput="showSuggestions(this,homeSuggestions)">
-    <button onclick="doHomeSearch()">Search</button>
+    <input id="homeInput" placeholder="Cari Visual Novel..." oninput="showSuggestions(this,'homeSuggestions')">
+    <button onclick="doHomeSearch()">Cari</button>
     <div id="homeSuggestions" class="autocomplete-list"></div>
   </div>
   <div id="homeResults" class="grid"></div>
-  <div id="emptyHome" class="empty">Belum ada rekomendasi</div>
+  <div id="emptyHome" class="empty">Memuat data...</div>
 </div>
 
 <div id="page-search" class="container">
   <div id="searchBar">
-    <input id="q" placeholder="Cari judul, genre, kata kunci..." oninput="onSearchInput()">
+    <input id="q" placeholder="Ketik judul atau genre..." oninput="onSearchInput()">
   </div>
   <select id="tagFilter" onchange="onFilterChange()"><option value="">Semua Genre</option></select>
   <div id="results" class="grid"></div>
-  <div id="empty" class="empty">Tidak ada hasil</div>
+  <div id="empty" class="empty">Tidak ada hasil ditemukan</div>
 </div>
 
 <div id="page-fav" class="container">
+  <h2 style="margin-bottom:15px">Favorit Saya</h2>
   <div id="favResults" class="grid"></div>
   <div id="emptyFav" class="empty">Belum ada VN favorit</div>
 </div>
 
 <div id="page-about" class="container">
   <h3>Tentang Aplikasi</h3>
-  <p>Search engine Visual Novel berbasis data Angkringan Visual Novel.</p>
+  <p style="margin-top:15px">AVN Engine adalah aplikasi pencari konten Visual Novel dari database Angkringan Visual Novel.</p>
+  <p style="margin-top:10px; font-size:12px; opacity:0.6">Version 1.0.0 (PWA)</p>
 </div>
 
 <div class="overlay" onclick="closeSheet()"></div>
-
 <div class="sheet" id="sheet">
+  <span class="fav" onclick="toggleFav()">🤍</span>
   <h3 id="sheetTitle"></h3>
   <div id="sheetGenre" class="genre"></div>
-  <p id="sheetSum"></p>
-  <span class="fav" onclick="toggleFav()">❤️</span>
-  <iframe id="sheetFrame"></iframe>
+  <p id="sheetSum" style="font-size:13px; margin:10px 0;"></p>
+  <iframe id="sheetFrame" loading="lazy"></iframe>
 </div>
 
 <div class="floating-nav">
-  <button onclick="showTab('home')">🏠</button>
-  <button onclick="showTab('search')">🔍</button>
-  <button onclick="showTab('fav')">❤️</button>
-  <button onclick="toggleOverlayMenu()">☰</button>
+  <button onclick="showTab('home')" title="Home">🏠</button>
+  <button onclick="showTab('search')" title="Search">🔍</button>
+  <button onclick="showTab('fav')" title="Favorites">❤️</button>
+  <button onclick="toggleOverlayMenu()" title="Menu">☰</button>
 </div>
 
 <div class="overlay-menu" id="overlayMenu">
-  <button onclick="showTab('home')">Home 🏠</button>
-  <button onclick="showTab('search')">Search 🔍</button>
-  <button onclick="showTab('fav')">Favorites ❤️</button>
-  <button onclick="showTab('about')">About ℹ️</button>
-  <button onclick="toggleOverlayMenu()">Close ✖️</button>
+  <h2 style="margin-bottom:20px">Menu</h2>
+  <button onclick="showTab('home')">Beranda</button>
+  <button onclick="showTab('search')">Pencarian</button>
+  <button onclick="showTab('fav')">Koleksi Favorit</button>
+  <button onclick="showTab('about')">Tentang AVN</button>
+  <hr style="margin-bottom:15px; opacity:0.2">
+  <button onclick="toggleOverlayMenu()" style="background:#ea4335; color:#fff">Tutup</button>
 </div>
 
-<div class="toast" id="toast">VN Baru Tersedia!</div>
+<div class="toast" id="toast"></div>
 
 <script>
 let posts=[], currentLink="", currentTitle="", currentSum="", currentCats=[];
 let favs=JSON.parse(localStorage.getItem("favs")||"[]");
-let lastKey="", searchOffset=0, searchLimit=20, lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
+let lastVNLinks=JSON.parse(localStorage.getItem("vnLinks")||"[]");
 let displayedLinks = new Set();
+let searchOffset=0;
+const searchLimit=12;
 
-// DOM elements
-const homeInput = document.getElementById("homeInput");
-const q = document.getElementById("q");
-const results = document.getElementById("results");
-const empty = document.getElementById("empty");
-const tagFilter = document.getElementById("tagFilter");
+// Splash Screen
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const splash = document.getElementById("splash");
+    splash.style.opacity = '0';
+    setTimeout(() => splash.remove(), 500);
+  }, 1000);
+});
 
-// Splash
-setTimeout(()=>document.getElementById("splash").remove(),1500);
+// Dark Mode
+function toggleDark(){
+  document.body.classList.toggle("dark");
+  localStorage.setItem("theme", document.body.classList.contains("dark") ? "dark" : "light");
+}
+if(localStorage.getItem("theme") === "dark") document.body.classList.add("dark");
 
-// Dark mode
-function toggleDark(){document.body.classList.toggle("dark");}
-
-// Tabs
+// Tab System
 function showTab(t){
-  document.getElementById("page-home").style.display=t==="home"?"block":"none";
-  document.getElementById("page-search").style.display=t==="search"?"block":"none";
-  document.getElementById("page-fav").style.display=t==="fav"?"block":"none";
-  document.getElementById("page-about").style.display=t==="about"?"block":"none";
+  document.querySelectorAll('.container').forEach(c => c.classList.remove('show'));
+  document.getElementById(`page-${t}`).classList.add('show');
   if(t==="fav") renderFav();
+  window.scrollTo(0,0);
   closeOverlayMenu();
 }
 
-// Overlay menu
+// Menu Toggle
 function toggleOverlayMenu(){document.getElementById("overlayMenu").classList.toggle("show");}
 function closeOverlayMenu(){document.getElementById("overlayMenu").classList.remove("show");}
 
-// Sheet
+// Bottom Sheet Logic
 function openSheet(t,s,c,l){
   currentTitle=t;currentSum=s;currentCats=c;currentLink=l;
-  sheetTitle.innerText=t;sheetSum.innerText=s;sheetGenre.innerText=c.join(", ");
-  sheetFrame.src=l;updateFavIcon();
-  sheet.classList.add("show");document.querySelector(".overlay").classList.add("show");
+  document.getElementById("sheetTitle").innerText=t;
+  document.getElementById("sheetSum").innerText=s.replace(/<[^>]*>?/gm, '').slice(0,200) + "...";
+  document.getElementById("sheetGenre").innerText=c.join(", ");
+  document.getElementById("sheetFrame").src=l;
+  updateFavIcon();
+  document.getElementById("sheet").classList.add("show");
+  document.querySelector(".overlay").classList.add("show");
+  history.pushState({sheet:true}, "");
 }
-function closeSheet(){sheet.classList.remove("show");document.querySelector(".overlay").classList.remove("show");}
+
+function closeSheet(){
+  document.getElementById("sheet").classList.remove("show");
+  document.querySelector(".overlay").classList.remove("show");
+  document.getElementById("sheetFrame").src="";
+}
+
+window.onpopstate = function(e) {
+  if (document.getElementById("sheet").classList.contains("show")) closeSheet();
+};
+
+// Favorites
 function toggleFav(){
   if(favs.includes(currentLink)) favs=favs.filter(x=>x!==currentLink);
   else favs.push(currentLink);
-  localStorage.setItem("favs",JSON.stringify(favs));updateFavIcon();
+  localStorage.setItem("favs",JSON.stringify(favs));
+  updateFavIcon();
+  showToast(favs.includes(currentLink) ? "Ditambahkan ke Favorit" : "Dihapus dari Favorit");
 }
-function updateFavIcon(){document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";}
+function updateFavIcon(){
+  document.querySelector(".fav").innerText=favs.includes(currentLink)?"❤️":"🤍";
+}
 
-// Fetch feed
+// Feed Data
 function loadFeed(d){
-  const newPosts=d.feed.entry||[];
-  checkNewVN(newPosts);
-  posts=newPosts;
-  loadTags(); buildSuggestions(); renderHome();
+  posts = d.feed.entry || [];
+  checkNewVN(posts);
+  loadTags();
+  renderHome();
 }
-function fetchFeed(){
-  const script=document.createElement("script");
-  script.src=`https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed&_=${Date.now()}`;
-  document.body.appendChild(script);
-}
-fetchFeed();
 
-// Push notification & toast
-if("Notification" in window && Notification.permission!=="granted") Notification.requestPermission();
-function showPushNotification(title,body){if(Notification.permission==="granted") new Notification(title,{body,icon:"https://angkringanvisualnovel.blogspot.com/favicon.ico"});}
 function checkNewVN(newPosts){
-  const newLinks=newPosts.map(p=>p.link.find(l=>l.rel==="alternate").href);
-  const diff=newLinks.filter(l=>!lastVNLinks.includes(l));
-  if(diff.length>0){showToast(`${diff.length} VN Baru Tersedia!`);showPushNotification("Angkringan VN",`${diff.length} VN Baru Tersedia!`);}
-  lastVNLinks=newLinks;
-  localStorage.setItem("vnLinks",JSON.stringify(lastVNLinks));
+  const newLinks = newPosts.slice(0,5).map(p => p.link.find(l=>l.rel==="alternate").href);
+  if(lastVNLinks.length > 0 && newLinks[0] !== lastVNLinks[0]) {
+    showToast("Ada Visual Novel baru dirilis!");
+  }
+  localStorage.setItem("vnLinks", JSON.stringify(newLinks));
 }
 
-// Toast
-function showToast(msg){
-  const t=document.getElementById("toast");
-  t.innerText=msg;
-  t.classList.add("show");
-  setTimeout(()=>t.classList.remove("show"),3000);
+// Render Logic
+function getThumb(p){
+  let thumb = p.media$thumbnail?.url || "";
+  const match = p.content?.$t.match(/<img[^>]+src="([^"]+)"/);
+  if(match) thumb = match[1];
+  return thumb.replace('s72-c','s400-c') || "https://via.placeholder.com/400x250?text=No+Image";
 }
 
-// Tags & suggestions
-function loadTags(){
-  const set=new Set();
-  posts.forEach(p=>(p.category||[]).forEach(c=>set.add(c.term)));
-  tagFilter.innerHTML='<option value="">Semua Genre</option>';
-  [...set].sort().forEach(t=>tagFilter.innerHTML+=`<option>${t}</option>`);
+function createItemHTML(p){
+  const t=p.title.$t, s=p.summary?.$t||"", c=(p.category||[]).map(x=>x.term), l=p.link.find(l=>l.rel==="alternate").href;
+  return `<div class="item" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
+    <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
+    <div class="item-title">${t}</div>
+    <div class="genre">${c.slice(0,2).join(", ")}</div>
+  </div>`;
 }
-let suggestions=[];
-function buildSuggestions(){suggestions=posts.map(p=>p.title.$t);}
-function showSuggestions(inputEl,listEl){
-  const key=inputEl.value.toLowerCase(); listEl.innerHTML="";
-  if(!key) return;
-  suggestions.filter(t=>t.toLowerCase().includes(key)).slice(0,5).forEach(t=>{
-    const div=document.createElement("div"); div.innerHTML=t; div.className="suggestion-item";
-    div.onclick=()=>{inputEl.value=t;lastKey=t;searchOffset=0;displayedLinks.clear();results.innerHTML='';loadMoreResults();listEl.innerHTML="";};
+
+function renderHome(){
+  const container = document.getElementById("homeResults");
+  container.innerHTML = posts.slice(0,12).map(p => createItemHTML(p)).join("");
+  document.getElementById("emptyHome").style.display = posts.length ? "none" : "block";
+}
+
+function renderFav(){
+  const container = document.getElementById("favResults");
+  const favPosts = posts.filter(p => favs.includes(p.link.find(l=>l.rel==="alternate").href));
+  container.innerHTML = favPosts.map(p => createItemHTML(p)).join("");
+  document.getElementById("emptyFav").style.display = favPosts.length ? "none" : "block";
+}
+
+// Search Logic
+function showSuggestions(inputEl, listId){
+  const key = inputEl.value.toLowerCase();
+  const listEl = document.getElementById(listId);
+  listEl.innerHTML = "";
+  if(key.length < 2) return;
+  posts.filter(p => p.title.$t.toLowerCase().includes(key)).slice(0,5).forEach(p => {
+    const div = document.createElement("div");
+    div.className = "suggestion-item";
+    div.innerText = p.title.$t;
+    div.onclick = () => {
+      inputEl.value = p.title.$t;
+      listEl.innerHTML = "";
+      doHomeSearch();
+    };
     listEl.appendChild(div);
   });
 }
 
-// Search input handler
-function onSearchInput(){
-  lastKey = q.value;
-  searchOffset = 0;
-  displayedLinks.clear();
-  results.innerHTML = '';
-  empty.style.display = 'none';
-  loadMoreResults();
-}
-
-// Filter change
-function onFilterChange(){
-  searchOffset = 0;
-  displayedLinks.clear();
-  results.innerHTML = '';
-  empty.style.display = 'none';
-  loadMoreResults();
-}
-
-// Home search
 function doHomeSearch(){
-  lastKey = homeInput.value;
+  document.getElementById("q").value = document.getElementById("homeInput").value;
   showTab('search');
-  q.value = lastKey;
+  onSearchInput();
+}
+
+function onSearchInput(){
   searchOffset = 0;
   displayedLinks.clear();
-  results.innerHTML = '';
-  empty.style.display = 'none';
+  document.getElementById("results").innerHTML = "";
   loadMoreResults();
 }
 
-// Infinite scroll
+function onFilterChange(){ onSearchInput(); }
+
 function loadMoreResults(){
-  const tag=tagFilter.value.toLowerCase();let count=0;
-  for(let i=searchOffset;i<posts.length;i++){
-    const p=posts[i]; const link=p.link.find(l=>l.rel==="alternate").href;
-    if(displayedLinks.has(link)) continue;
-    const title=p.title.$t, sum=p.summary?.$t||"", cats=(p.category||[]).map(x=>x.term);
-    const text=(title+sum+cats.join(" ")).toLowerCase();
-    if((!lastKey || text.includes(lastKey.toLowerCase())) && (!tag || cats.map(c=>c.toLowerCase()).includes(tag))){
-      results.innerHTML += `<div class="item show" onclick='openSheet(${JSON.stringify(title)},${JSON.stringify(sum)},${JSON.stringify(cats)},"${link}")'>
-      <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-      <div><div class="item-title">${title}</div><div class="preview">${sum.slice(0,100)}...</div><div class="genre">${cats.join(", ")}</div></div></div>`;
-      displayedLinks.add(link);
+  const key = document.getElementById("q").value.toLowerCase();
+  const tag = document.getElementById("tagFilter").value.toLowerCase();
+  const container = document.getElementById("results");
+  let count = 0;
+
+  for(let i=0; i<posts.length; i++){
+    const p = posts[i];
+    const title = p.title.$t.toLowerCase();
+    const cats = (p.category||[]).map(x=>x.term.toLowerCase());
+    if(title.includes(key) && (tag === "" || cats.includes(tag))){
+      container.innerHTML += createItemHTML(p);
       count++;
     }
-    if(count >= searchLimit){searchOffset = i + 1; return;}
+    if(count >= 20) break;
   }
-  searchOffset = posts.length;
-  if(count === 0 && lastKey) empty.style.display="block";
+  document.getElementById("empty").style.display = count === 0 ? "block" : "none";
 }
 
-// Home render
-function renderHome(){
-  const container=homeResults;container.innerHTML="";
-  let top=posts.slice(0,10);if(top.length===0){emptyHome.style.display="block";return;}else{emptyHome.style.display="none";}
-  top.forEach(p=>{
-    const t=p.title.$t,s=p.summary?.$t||"",c=(p.category||[]).map(x=>x.term),l=p.link.find(l=>l.rel==="alternate").href;
-    container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(t)},${JSON.stringify(s)},${JSON.stringify(c)},"${l}")'>
-    <div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-    <div><div class="item-title">${t}</div><div class="preview">${s.slice(0,90)}...</div><div class="genre">${c.join(", ")}</div></div></div>`;
-  });
+function loadTags(){
+  const set = new Set();
+  posts.forEach(p => (p.category||[]).forEach(c => set.add(c.term)));
+  const filter = document.getElementById("tagFilter");
+  [...set].sort().forEach(t => filter.innerHTML += `<option value="${t}">${t}</option>`);
 }
 
-// Favorites
-function renderFav(){const container=favResults;container.innerHTML="";if(favs.length===0){emptyFav.style.display="block";return;}else{emptyFav.style.display="none";}
-favs.forEach(link=>{const p=posts.find(x=>x.link.find(l=>l.rel==="alternate").href===link);if(p){container.innerHTML+=`<div class="item show" onclick='openSheet(${JSON.stringify(p.title.$t)},${JSON.stringify(p.summary?.$t||"")},${JSON.stringify((p.category||[]).map(x=>x.term))},"${link}")'>
-<div class="thumb" style="background-image:url('${getThumb(p)}')"></div>
-<div><div class="item-title">${p.title.$t}</div><div class="preview">${(p.summary?.$t||"").slice(0,90)}...</div><div class="genre">${(p.category||[]).map(x=>x.term).join(", ")}</div></div></div>`;}});}
-function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.match(/<img[^>]+src="([^"]+)"/);if(match)thumb=match[1];if(thumb && thumb.includes('s72-c')) thumb=thumb.replace('s72-c','s400-c');return thumb||"https://via.placeholder.com/400x250";}
+function showToast(m){
+  const t=document.getElementById("toast");
+  t.innerText=m; t.classList.add("show");
+  setTimeout(()=>t.classList.remove("show"),3000);
+}
 
-// Handle back button Android
-window.addEventListener('popstate', function(event) {
-  if(sheet.classList.contains('show')){
-    closeSheet();
-    history.pushState(null, null, location.href);
-  }
-});
-history.pushState(null, null, location.href);
-
-// Register service worker
-if('serviceWorker' in navigator){
-  navigator.serviceWorker.register('/AVN-Engine/sw.js').then(()=>console.log('SW registered')).catch(console.error);
+// Service Worker Registration
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('/AVN-Engine/sw.js', { scope: '/AVN-Engine/' })
+    .then(() => console.log("SW Registered"))
+    .catch(err => console.log("SW Failed", err));
 }
 </script>
-
 <script src="https://angkringanvisualnovel.blogspot.com/feeds/posts/default?alt=json&callback=loadFeed"></script>
 </body>
 </html>
