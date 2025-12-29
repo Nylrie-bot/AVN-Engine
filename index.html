@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Angkringan Visual Novel</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="manifest" href="manifest.json">
 <style>
 *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,sans-serif;}
 body{background:#fff;color:#202124;transition:background 0.3s,color 0.3s;overflow-x:hidden;}
@@ -259,7 +260,7 @@ function getThumb(p){let thumb=p.media$thumbnail?.url;const match=p.content?.$t.
 // Handle back button Android
 window.addEventListener('popstate', function(event) {
   if(sheet.classList.contains('show')){
-    closeSheet(); // Tutup sheet dulu
+    closeSheet(); 
     history.pushState(null, null, location.href);
   }
 });
